@@ -66,6 +66,36 @@ const lessons = [
     desc: '整合 1–9 课：CRUD、localStorage 持久化、防抖搜索、reducer、memo',
     files: ['src/pages/Lesson10.jsx', 'src/components/lesson10/'],
   },
+  {
+    path: '/lesson/11',
+    title: '第 11 课 · 数据获取进阶',
+    desc: '通用 useFetch；分页加载；失败重试；竞态防护复盘',
+    files: ['src/pages/Lesson11.jsx', 'src/components/lesson11/'],
+  },
+  {
+    path: '/lesson/12',
+    title: '第 12 课 · 代码分割与懒加载',
+    desc: 'React.lazy + Suspense；按需加载；构建产物观察',
+    files: ['src/pages/Lesson12.jsx', 'src/components/lesson12/'],
+  },
+  {
+    path: '/lesson/13',
+    title: '第 13 课 · 错误边界',
+    desc: 'class 组件捕获渲染错误；fallback UI；捕获范围与重置',
+    files: ['src/pages/Lesson13.jsx', 'src/components/lesson13/'],
+  },
+  {
+    path: '/lesson/14',
+    title: '第 14 课 · 并发渲染',
+    desc: 'useTransition；useDeferredValue；紧急与非紧急更新',
+    files: ['src/pages/Lesson14.jsx', 'src/components/lesson14/'],
+  },
+  {
+    path: '/lesson/15',
+    title: '第 15 课 · 测试入门',
+    desc: 'Vitest + Testing Library；reducer 纯函数测试；组件与 Hook 测试',
+    files: ['src/pages/Lesson15.jsx', 'src/components/lesson15/'],
+  },
 ]
 
 function Home() {

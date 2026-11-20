@@ -1,0 +1,55 @@
+/* 第 11 课专属样式：只写本页需要的部分；卡片/行/提示复用 App.css、index.css 的 .card/.row/.hint */
+
+/* 工具行：开关在左、统计在右 */
+.lesson11-toolbar {
+  align-items: center;
+}
+
+.lesson11-stats {
+  margin-left: auto;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+/* 当前请求的独立 loading 行：辅助信息，弱化显示 */
+.lesson11-loading {
+  color: #6b7280;
+}
+
+/* 失败重试区：红色系盒子，视觉上与列表内容明确区分 */
+.lesson11-error {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 8px 0;
+}
+
+.lesson11-error p {
+  margin: 4px 0;
+  color: #b91c1c;
+}
+
+.lesson11-error .hint {
+  color: #9ca3af;
+}
+
+/* "加载更多"：撑满整行，好点好认；禁用态（加载中）变灰且不可点 */
+.lesson11-more {
+  width: 100%;
+  padding: 8px 0;
+  margin-top: 8px;
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.lesson11-more:hover:not(:disabled) {
+  background: #eef1f7;
+}
+
+.lesson11-more:disabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+}

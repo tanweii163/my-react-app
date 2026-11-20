@@ -1,0 +1,105 @@
+/* 第 15 课专属样式：通用布局复用 App.css 的 .card/.row、index.css 的 .hint，
+   这里只写本页新增的部分 */
+
+/* 星星打分组 */
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 星按钮：默认灰，点过的（active）变金——这个类切换正是测试断言的对象 */
+.rating-star {
+  font-size: 1.7rem;
+  line-height: 1;
+  padding: 2px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #d1d5db;
+}
+
+.rating-star.active {
+  color: #f59e0b;
+}
+
+.rating-value {
+  margin-left: 8px;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* 购物车 demo */
+.cart-ops {
+  margin: 0;
+}
+
+.cart-total {
+  font-weight: 700;
+  margin: 8px 0 0;
+}
+
+/* 计数器 demo 里的数字稍微收一点，别把卡片撑太高 */
+.counter-demo {
+  align-items: center;
+}
+
+.counter-demo .big-number {
+  min-width: 3ch;
+  text-align: center;
+}
+
+/* 金字塔列表：编号自带层级感，收紧行距。
+   注意 App.css 的 .card li 是 display:flex + 两端对齐（给购物车行用的），
+   普通文字列表会被它拆成"左一列右一列"，这里明确改回流式排版 */
+.pyramid li,
+.concepts li {
+  display: block;
+  border-bottom: none;
+  margin: 6px 0;
+}
+
+.pyramid .testfile {
+  margin-left: 8px;
+}
+
+/* 测试文件说明框：每张被测对象卡片底部的"测什么 + 怎么跑" */
+.test-note {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px dashed #dfe3ec;
+  border-radius: 8px;
+  background: #fafbfd;
+}
+
+.test-note p {
+  margin: 0 0 6px;
+}
+
+/* 测试文件名的小芯片 */
+.testfile {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+  background: #eef1f7;
+  color: #1f2430;
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* 命令行展示块：黑底白字，一眼和普通文字区分开 */
+.cmd {
+  display: block;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #1f2430;
+  color: #e5e7eb;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.cmd-list li {
+  margin: 10px 0;
+}

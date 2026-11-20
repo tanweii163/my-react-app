@@ -1,0 +1,48 @@
+/* 第 13 课专属样式：不修改 App.css，新样式写在这里。
+   crash-screen 伪装"全页白屏"，fallback-card 是边界降级后的卡片样式。 */
+
+.crash-screen {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #dfe3ec;
+  border-radius: 10px;
+  padding: 32px;
+  text-align: center;
+}
+
+.crash-screen h1 {
+  font-size: 1.6rem;
+}
+
+.crash-detail {
+  font-family: monospace;
+  background: #fef2f2;
+  color: #b91c1c;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.fallback-card {
+  border: 1px dashed #f59e0b;
+  background: #fffbeb;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 8px 0;
+}
+
+.fallback-card h2 {
+  font-size: 1rem;
+}
+
+.fallback-card .hint {
+  color: #92400e;
+}
+
+.scope-list li {
+  padding: 4px 0;
+}
