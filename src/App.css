@@ -1,4 +1,28 @@
 /* 页面布局样式 */
+.top-nav {
+  display: flex;
+  gap: 8px;
+  padding: 8px 0 16px;
+  border-bottom: 1px solid #dfe3ec;
+}
+
+.top-nav a {
+  padding: 4px 12px;
+  border-radius: 6px;
+  color: #4b5563;
+  text-decoration: none;
+}
+
+.top-nav a:hover {
+  background: #eef1f7;
+}
+
+/* NavLink 激活时自动带上的类名 */
+.top-nav a.active {
+  background: #1f2430;
+  color: #fff;
+}
+
 .page header {
   padding: 8px 0 16px;
 }

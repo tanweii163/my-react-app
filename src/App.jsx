@@ -1,28 +1,14 @@
-// 第 1 课 · JSX 基础
+// 第 3 课 · React Router：布局与嵌套路由
 //
-// JSX 不是字符串，也不是模板 —— 它是 JavaScript 的语法扩展，
-// 最终会被编译成普通的函数调用（React.createElement）。
+// App.jsx 从“整个页面”变成了“布局外壳”：
+//   <Outlet /> 是占位符 —— 当前 URL 匹配到的子页面在这里渲染。
+// 这样导航栏、页脚等公共部分只写一次，每个页面只管自己的内容。
 //
-// 核心规则：
-// 1. 一个组件必须返回“一个”根元素 —— 所以常见外面包一层 <div> 或空标签 <></>
-// 2. {} 里可以写任何 JS 表达式，结果会被渲染出来
-// 3. class 要写成 className，因为 class 是 JS 的保留字
-// 4. 标签必须闭合：<img /> <br /> <input />
+// 路由表在 src/main.jsx：/ 是 Home，/lesson/1、/lesson/2 挂在这个布局下。
+import { NavLink, Outlet } from 'react-router'
 import './App.css'
-import Greeting from './components/Greeting.jsx'
-import Counter from './components/Counter.jsx'
-import TodoList from './components/TodoList.jsx'
-import TimerDemo from './components/TimerDemo.jsx'
-import UserList from './components/UserList.jsx'
-
-// 纯函数原则：渲染过程中不该调用 new Date() 这类“每次结果都可能不同”的函数，
-// 否则每次重新渲染页面显示都可能变。这里在模块加载时算一次。
-const today = new Date().toLocaleDateString('zh-CN')
 
 function App() {
-  const name = 'React 学习者'
-  const isLearning = true
-
   return (
     <div className="page">
       <header>
