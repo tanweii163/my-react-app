@@ -1,0 +1,46 @@
+/* 第 7 课专属样式：只放本课新增的元素，通用类（.card/.hint/.row）仍来自 App.css */
+
+/* 商品按钮网格 */
+.product-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+/* 购物车表格 */
+.cart-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+}
+
+.cart-table th,
+.cart-table td {
+  padding: 6px 8px;
+  border-bottom: 1px dashed #e5e7eb;
+  text-align: left;
+}
+
+.cart-table th {
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.cart-table td button {
+  min-width: 32px;
+  margin: 0 2px;
+}
+
+.cart-table .qty {
+  display: inline-block;
+  min-width: 28px;
+  text-align: center;
+}
+
+/* 总计行：左对齐文字 + 右侧清空按钮 */
+.cart-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

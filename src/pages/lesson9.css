@@ -1,0 +1,21 @@
+/* 第 9 课专属样式：只加 App.css 没有的类，不动公共样式 */
+.perf-demo-child {
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 8px 0;
+  background: #f8fafc;
+}
+
+.render-counter {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 0.85rem;
+}
+
+.render-counter strong {
+  font-size: 1rem;
+}

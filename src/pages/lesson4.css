@@ -1,0 +1,35 @@
+/* 第 4 课专用样式：只放本页新需要的，公共样式仍在 App.css */
+
+/* 温度输入框的排版：两个输入框竖着排，label 和 input 对齐 */
+.temp-input {
+  margin: 8px 0;
+}
+
+.temp-input label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 260px;
+}
+
+.temp-input input {
+  padding: 6px 10px;
+  border: 1px solid #dfe3ec;
+  border-radius: 6px;
+  font-size: 1rem;
+  width: 140px;
+}
+
+/* 沸腾结论：两种结论两种颜色，一眼可辨 */
+.verdict {
+  font-weight: 700;
+  margin: 8px 0;
+}
+
+.verdict.boil {
+  color: #dc2626;
+}
+
+.verdict.no-boil {
+  color: #2563eb;
+}

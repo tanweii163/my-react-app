@@ -1,0 +1,82 @@
+/* 第 10 课专属样式：只写本页需要的部分，通用布局复用 App.css 的 .card/.row/.hint */
+.note-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.note-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+/* 整行可点：把 button 撑满剩余宽度并去掉默认样式 */
+.note-open {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 6px 8px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.note-open:hover {
+  background: #eef1f7;
+}
+
+.note-item.active .note-open {
+  background: #1f2430;
+}
+
+.note-item.active .note-title {
+  color: #fff;
+}
+
+.note-item.active .note-preview {
+  color: #d1d5db;
+}
+
+.note-title {
+  font-size: 0.95rem;
+}
+
+.note-preview {
+  color: #6b7280;
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* 编辑器 */
+.editor-title {
+  flex: 1;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.editor-content {
+  flex: 1;
+  font: inherit;
+  resize: vertical;
+}
+
+.editor-footer {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.note-id {
+  color: #9ca3af;
+  font-weight: 400;
+  font-size: 0.85rem;
+}

@@ -1,0 +1,133 @@
+/* 第 6 课样式：主题切换与跨层传值演示。
+   本文件被 src/pages/Lesson6.jsx import，只在第 6 课页面生效。
+   注意铁律：不要动 App.css / index.css，各课样式自管。 */
+
+/* 两套主题变量：浅色是默认值（写在 :root），深色用 [data-theme='dark'] 覆盖。
+   <html> 上的 data-theme 属性由 ThemeProvider 的 useEffect 写入/删除；
+   变量统一加 l6- 前缀，避免和其他课/全局样式撞名。 */
+:root {
+  --l6-card-bg: #ffffff;
+  --l6-fg: #1f2430;
+  --l6-muted: #6b7280;
+  --l6-border: #dfe3ec;
+  --l6-accent: #4f6df5;
+  --l6-accent-soft: #eef1fd;
+  --l6-drill-bg: #1f2430;
+  --l6-drill-fg: #d7dbe7;
+  --l6-drill-comment: #8a93a8;
+}
+
+[data-theme='dark'] {
+  --l6-card-bg: #1e2230;
+  --l6-fg: #e7e9f0;
+  --l6-muted: #9aa0ae;
+  --l6-border: #39415a;
+  --l6-accent: #8ea2ff;
+  --l6-accent-soft: #262d42;
+  --l6-drill-bg: #101219;
+  --l6-drill-fg: #c9cede;
+  --l6-drill-comment: #6f7890;
+}
+
+/* Provider 渲染的工具条：按钮 + 当前主题提示（数据与 UI 共存的好例子） */
+.theme-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border: 1px dashed var(--l6-border);
+  border-radius: 8px;
+  background: var(--l6-accent-soft);
+}
+
+/* index.css 里 .hint 是固定灰色，深色工具条上看不清——改用主题变量随主题走 */
+.theme-toolbar .hint {
+  color: var(--l6-muted);
+}
+
+/* 嵌套层容器：一层套一层，视觉上直接看出「有多深」 */
+.l6-layers {
+  border: 2px solid var(--l6-accent);
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: var(--l6-card-bg);
+  color: var(--l6-fg);
+  transition: background 0.25s, color 0.25s;
+}
+
+.l6-layer {
+  border: 1px dashed var(--l6-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 8px;
+}
+
+.l6-layers .l6-layer-label {
+  font-size: 0.85em;
+  /* 双类选择器：App.css 的 .card p（0,1,1）会压过单类（0,1,0），这里特意提高优先级 */
+  color: var(--l6-muted);
+}
+
+/* 最深层的主题卡片：颜色全部来自变量 —— 组件里没有一行 if 换色 */
+.theme-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-top: 8px;
+  border: 1px solid var(--l6-border);
+  border-radius: 8px;
+  background: var(--l6-accent-soft);
+}
+
+.theme-card-icon {
+  font-size: 1.8rem;
+}
+
+.theme-card .theme-card-title {
+  font-weight: 700;
+  color: var(--l6-fg);
+}
+
+.theme-card .theme-card-text {
+  color: var(--l6-muted);
+  font-size: 0.92em;
+}
+
+/* 痛点小节的静态代码示意（固定深底浅字，不参与主题切换） */
+.l6-drill {
+  overflow-x: auto;
+  padding: 14px 16px;
+  margin: 8px 0;
+  border-radius: 8px;
+  background: var(--l6-drill-bg);
+  color: var(--l6-drill-fg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  line-height: 1.7;
+}
+
+/* 适合 / 不适合两栏对比 */
+.l6-fit {
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 12px;
+  border: 1px solid var(--l6-border);
+  border-radius: 8px;
+}
+
+.l6-fit ul {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0;
+}
+
+.l6-fit li {
+  padding: 3px 0;
+}
+
+.l6-fit-title {
+  font-weight: 700;
+}

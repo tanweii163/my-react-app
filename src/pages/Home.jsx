@@ -24,6 +24,48 @@ const lessons = [
     desc: '渲染后执行；依赖数组；清理函数防泄漏；请求三态与竞态；派生数据不进 state',
     files: ['src/pages/Lesson2.jsx', 'src/components/TimerDemo.jsx', 'src/components/UserList.jsx'],
   },
+  {
+    path: '/lesson/4',
+    title: '第 4 课 · 状态提升与组件通信',
+    desc: 'props 下行、事件上行；兄弟组件共享父 state；温度转换双输入',
+    files: ['src/pages/Lesson4.jsx', 'src/components/lesson4/'],
+  },
+  {
+    path: '/lesson/5',
+    title: '第 5 课 · useRef 与 DOM 操作',
+    desc: 'ref 是不触发渲染的盒子；什么进 state 什么进 ref；非受控表单',
+    files: ['src/pages/Lesson5.jsx', 'src/components/lesson5/'],
+  },
+  {
+    path: '/lesson/6',
+    title: '第 6 课 · useContext 与跨层传值',
+    desc: 'props 钻透的痛点；createContext + useContext；主题切换实战',
+    files: ['src/pages/Lesson6.jsx', 'src/components/lesson6/'],
+  },
+  {
+    path: '/lesson/7',
+    title: '第 7 课 · useReducer 与复杂状态',
+    desc: 'reducer 纯函数集中状态迁移；action 语义化；不可更新',
+    files: ['src/pages/Lesson7.jsx', 'src/components/lesson7/'],
+  },
+  {
+    path: '/lesson/8',
+    title: '第 8 课 · 自定义 Hook',
+    desc: '逻辑与 UI 分离；useLocalStorage、useDebounce',
+    files: ['src/pages/Lesson8.jsx', 'src/components/lesson8/'],
+  },
+  {
+    path: '/lesson/9',
+    title: '第 9 课 · 渲染机制与性能优化',
+    desc: '何时重渲染；React.memo、useMemo、useCallback；先测量再优化',
+    files: ['src/pages/Lesson9.jsx', 'src/components/lesson9/'],
+  },
+  {
+    path: '/lesson/10',
+    title: '第 10 课 · 综合实战：学习笔记应用',
+    desc: '整合 1–9 课：CRUD、localStorage 持久化、防抖搜索、reducer、memo',
+    files: ['src/pages/Lesson10.jsx', 'src/components/lesson10/'],
+  },
 ]
 
 function Home() {
