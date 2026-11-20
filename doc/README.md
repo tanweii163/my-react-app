@@ -24,6 +24,11 @@
 | 8 | 自定义 Hook | [doc/lesson-8.md](lesson-8.md) | `/lesson/8` | `src/components/lesson8/` |
 | 9 | 渲染机制与性能优化 | [doc/lesson-9.md](lesson-9.md) | `/lesson/9` | `src/components/lesson9/` |
 | 10 | 综合实战：学习笔记应用 | [doc/lesson-10.md](lesson-10.md) | `/lesson/10` | `src/components/lesson10/` |
+| 11 | 数据获取进阶 | [doc/lesson-11.md](lesson-11.md) | `/lesson/11` | `src/components/lesson11/` |
+| 12 | 代码分割与懒加载 | [doc/lesson-12.md](lesson-12.md) | `/lesson/12` | `src/components/lesson12/` |
+| 13 | 错误边界 | [doc/lesson-13.md](lesson-13.md) | `/lesson/13` | `src/components/lesson13/` |
+| 14 | 并发渲染 | [doc/lesson-14.md](lesson-14.md) | `/lesson/14` | `src/components/lesson14/` |
+| 15 | 测试入门 | [doc/lesson-15.md](lesson-15.md) | `/lesson/15` | `src/components/lesson15/` |
 
 ## 课程主线（一条致学习的暗线）
 
@@ -38,6 +43,12 @@ UI = f(state)                    ← 第 1 课：一切的开始
   + 逻辑复用                     ← 第 8 课：自定义 Hook
   + 什么时候需要管性能           ← 第 9 课：memo/useMemo/useCallback
   = 独立完成一个真实小应用       ← 第 10 课：综合实战
+  ──────────── 进阶篇 ────────────
+  + 请求的工程化                 ← 第 11 课：useFetch/分页/重试
+  + 按需加载                     ← 第 12 课：lazy/Suspense
+  + 渲染出错的兜底               ← 第 13 课：ErrorBoundary
+  + 大列表不卡输入               ← 第 14 课：useTransition/useDeferredValue
+  + 给代码上保险                 ← 第 15 课：Vitest + Testing Library
 ```
 
 ## 项目结构约定
