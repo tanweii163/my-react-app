@@ -12,6 +12,8 @@ import './App.css'
 import Greeting from './components/Greeting.jsx'
 import Counter from './components/Counter.jsx'
 import TodoList from './components/TodoList.jsx'
+import TimerDemo from './components/TimerDemo.jsx'
+import UserList from './components/UserList.jsx'
 
 // 纯函数原则：渲染过程中不该调用 new Date() 这类“每次结果都可能不同”的函数，
 // 否则每次重新渲染页面显示都可能变。这里在模块加载时算一次。
@@ -51,6 +53,10 @@ function App() {
 
         {/* ---- 3. 列表渲染 + 受控表单 ---- */}
         <TodoList />
+
+        {/* ---- 4. useEffect：副作用（定时器 / 数据请求） ---- */}
+        <TimerDemo />
+        <UserList />
       </main>
     </div>
   )
