@@ -34,6 +34,11 @@
 | 18 | Zustand 状态管理 | [doc/lesson-18.md](lesson-18.md) | `/lesson/18` | `src/components/lesson18/` |
 | 19 | React 19 新特性 | [doc/lesson-19.md](lesson-19.md) | `/lesson/19` | `src/components/lesson19/` |
 | 20 | 综合实战 II：课程进度看板 | [doc/lesson-20.md](lesson-20.md) | `/lesson/20` | `src/components/lesson20/` |
+| 21 | React + TypeScript 入门 | [doc/lesson-21.md](lesson-21.md) | `/lesson/21` | `src/components/lesson21/` |
+| 22 | 组件设计模式 | [doc/lesson-22.md](lesson-22.md) | `/lesson/22` | `src/components/lesson22/` |
+| 23 | 动画与过渡 | [doc/lesson-23.md](lesson-23.md) | `/lesson/23` | `src/components/lesson23/` |
+| 24 | 构建与部署 | [doc/lesson-24.md](lesson-24.md) | `/lesson/24` | `src/components/lesson24/` |
+| 25 | 毕业项目：学习护照 | [doc/lesson-25.md](lesson-25.md) | `/lesson/25` | `src/components/lesson25/` |
 
 ## 课程主线（一条致学习的暗线）
 
@@ -60,6 +65,12 @@ UI = f(state)                    ← 第 1 课：一切的开始
   + 状态库                       ← 第 18 课：Zustand
   + 最新语言特性                 ← 第 19 课：React 19 Actions
   + 生态整合                     ← 第 20 课：综合实战 II
+  ──────────── 收官篇 ────────────
+  + 类型安全                     ← 第 21 课：TypeScript
+  + 组件设计套路                 ← 第 22 课：设计模式
+  + 动效                         ← 第 23 课：动画与过渡
+  + 上线                         ← 第 24 课：构建与部署
+  = 毕业                         ← 第 25 课：学习护照
 ```
 
 ## 项目结构约定
