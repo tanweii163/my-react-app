@@ -1,0 +1,133 @@
+/* 第 22 课专属样式：l22- 前缀防撞；只加 App.css 没有的类，不动公共样式 */
+
+/* ── ① 组合组件：Tabs ── */
+/* 标签条：一排标签 + 底边线，仿浏览器标签页的"上圆角"形状 */
+.l22-tabs-list {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid #dfe3ec;
+}
+
+.l22-tab {
+  padding: 6px 14px;
+  border: 1px solid #dfe3ec;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  background: #f3f4f6;
+  color: #4b5563;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+/* 激活态：与容器底边线"焊"在一起（背景同色 + 比容器高 1px 盖住那条线） */
+.l22-tab-active {
+  background: #1f2430;
+  color: #fff;
+  border-color: #1f2430;
+  margin-bottom: -1px;
+  padding-bottom: 7px;
+}
+
+.l22-tab-panel {
+  padding: 12px 4px 4px;
+  color: #374151;
+}
+
+/* ── ② render props：台灯 + 密码框 ── */
+.l22-rp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.l22-lamp,
+.l22-pass {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.l22-pass input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid #dfe3ec;
+  border-radius: 6px;
+  font-family: monospace;
+}
+
+/* 灯泡：开灯时换底色，transition 让它柔和一点（第 23 课的正主，这里只借一小口） */
+.l22-bulb {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+  border-radius: 50%;
+  background: #e5e7eb;
+  transition: background 0.3s;
+}
+
+.l22-bulb-on {
+  background: #fde68a;
+}
+
+/* 提示行横跨两列 */
+.l22-rp-note {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+}
+
+/* ── ③ 容器/展示：两个秒表并排；窄屏退化单列 ── */
+.l22-stopwatch-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 700px) {
+  .l22-rp-grid,
+  .l22-stopwatch-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.l22-vs-tag {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 0 0 4px;
+}
+
+.l22-stopwatch {
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 12px 16px;
+  text-align: center;
+}
+
+/* 大数字后缀的 s：缩小、变灰，别抢数字的风头 */
+.l22-unit {
+  font-size: 1rem;
+  color: #6b7280;
+  margin-left: 4px;
+}
+
+/* ── 每卡的"什么时候用它"结论行 ── */
+.l22-verdict {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: #f0f7ff;
+  border-left: 3px solid #3b82f6;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.92rem;
+}
+
+.l22-verdict-list li {
+  padding: 6px 0;
+  border-bottom: 1px dashed #e5e7eb;
+  color: #374151;
+  font-size: 0.95rem;
+}

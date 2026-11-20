@@ -126,6 +126,36 @@ const lessons = [
     desc: '整合 16–19：Zustand 进度持久化 + Query 资源库 + 表单校验 + 乐观更新',
     files: ['src/pages/Lesson20.jsx', 'src/components/lesson20/'],
   },
+  {
+    path: '/lesson/21',
+    title: '第 21 课 · React + TypeScript 入门',
+    desc: 'tsconfig；props/事件/Hook 的类型；泛型组件',
+    files: ['src/pages/Lesson21.jsx', 'src/components/lesson21/'],
+  },
+  {
+    path: '/lesson/22',
+    title: '第 22 课 · 组件设计模式',
+    desc: '组合组件；render props；容器/展示分离的历史与现状',
+    files: ['src/pages/Lesson22.jsx', 'src/components/lesson22/'],
+  },
+  {
+    path: '/lesson/23',
+    title: '第 23 课 · 动画与过渡',
+    desc: 'CSS 过渡；退场动画的卸载难题；View Transitions API；reduced-motion',
+    files: ['src/pages/Lesson23.jsx', 'src/components/lesson23/'],
+  },
+  {
+    path: '/lesson/24',
+    title: '第 24 课 · 构建与部署',
+    desc: '产物分析；环境变量；Lighthouse；上线步骤',
+    files: ['src/pages/Lesson24.jsx', 'src/components/lesson24/'],
+  },
+  {
+    path: '/lesson/25',
+    title: '第 25 课 · 毕业项目：学习护照',
+    desc: '毕业自检清单；课程总结；后续路线（Next.js/RSC/React Native）',
+    files: ['src/pages/Lesson25.jsx', 'src/components/lesson25/'],
+  },
 ]
 
 function Home() {

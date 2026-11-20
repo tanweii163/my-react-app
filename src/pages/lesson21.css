@@ -1,0 +1,95 @@
+/* 第 21 课专属样式：Badge 三色徽章、泛型列表、JS/TS 对比代码块
+   通用样式（.card/.row/.big-number/.hint 等）在 App.css / index.css，本文件只放本课新东西 */
+
+/* —— Badge：variant 直接当类名的一段，三种语义色（见 Badge.tsx 的注释）—— */
+.l21-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.l21-badge--success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.l21-badge--warning {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.l21-badge--error {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.l21-badge--sm {
+  padding: 1px 8px;
+  font-size: 0.75rem;
+}
+
+/* —— Badge 演示区：徽章排一行 —— */
+.l21-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+/* —— EventDemo：已创建用户的展示盒 —— */
+.l21-user-box {
+  background: #eef1f7;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 8px 0;
+}
+
+/* —— 泛型列表：借 .card ul/li 的骨架，这里只补一点列表间距 —— */
+.l21-generic-list {
+  margin: 8px 0;
+}
+
+/* —— JS vs TS 对比块：两张 pre 并排（窄屏自动换行堆叠）—— */
+.l21-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+@media (max-width: 720px) {
+  .l21-compare {
+    grid-template-columns: 1fr;
+  }
+}
+
+.l21-compare pre {
+  margin: 0;
+  padding: 12px;
+  background: #1f2430;
+  color: #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+
+/* 对比块的"语言标签"：左上角小徽标标出这是 JS 还是 TS */
+.l21-compare-tag {
+  display: inline-block;
+  margin-bottom: 4px;
+  padding: 1px 8px;
+  border-radius: 6px;
+  background: #1f2430;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.l21-compare-tag--ts {
+  background: #3178c6;
+}

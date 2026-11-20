@@ -1,0 +1,199 @@
+/* 第 24 课专属样式：只写本页新增的部分；
+   通用布局复用 App.css 的 .card/.row 与 index.css 的 .hint，
+   约定全部类名 l24- 前缀，不与通用类冲突。 */
+
+/* —— 演示一：环境变量表 —— */
+.l24-env-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-size: 0.95rem;
+}
+
+.l24-env-table th,
+.l24-env-table td {
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.l24-env-table th {
+  color: #4b5563;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* "安全"绿：白名单变量与 || 兜底生效的值 */
+.l24-env-table td.l24-ok {
+  color: #15803d;
+}
+
+/* "红线"红：无前缀敏感变量的下场 */
+.l24-env-table td.l24-bad {
+  color: #b91c1c;
+}
+
+.l24-keys {
+  margin-top: 10px;
+}
+
+.l24-key-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.l24-key-list li {
+  background: #eef1f7;
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+/* —— 演示二：知识卡网格（窄屏自动降列数） —— */
+.l24-tip-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.l24-tip {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.l24-tip h3 {
+  margin: 0 0 6px;
+  font-size: 0.98rem;
+}
+
+.l24-tip p {
+  margin: 0;
+  color: #374151;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+/* —— 摇树小测：点击翻面 —— */
+.l24-quiz h3 {
+  margin: 12px 0 8px;
+  font-size: 1rem;
+}
+
+.l24-quiz ul {
+  margin: 0;
+  padding: 0;
+}
+
+.l24-quiz li {
+  display: block;
+  border-bottom: none;
+  padding: 4px 0;
+}
+
+.l24-quiz li button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  background: #f8fafc;
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.92rem;
+}
+
+.l24-quiz li button:hover {
+  background: #eef1f7;
+}
+
+.l24-quiz-flip {
+  flex-shrink: 0;
+  font-size: 0.82rem;
+  color: #4b5563;
+}
+
+/* —— build 产物目录树 —— */
+.l24-tree {
+  background: #1f2430;
+  color: #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+/* —— 三张托管卡 —— */
+.l24-host-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.l24-host {
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.l24-host h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.l24-host ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.l24-host li {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  border-bottom: none;
+  justify-content: flex-start;
+}
+
+.l24-host .hint {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+}
+
+/* —— 回退原理四步：每步独立一行，序号即"第 N 步" —— */
+.l24-fallback {
+  padding-left: 20px;
+}
+
+.l24-fallback li {
+  display: block;
+  border-bottom: none;
+  justify-content: flex-start;
+  line-height: 1.7;
+  font-size: 0.94rem;
+}
+
+/* —— checklist：绿色对勾由 ::before 提供，内容免维护 —— */
+.l24-checklist li {
+  display: block;
+  border-bottom: none;
+  justify-content: flex-start;
+  padding: 5px 0 5px 26px;
+  position: relative;
+  line-height: 1.6;
+  font-size: 0.94rem;
+}
+
+.l24-checklist li::before {
+  content: '✅';
+  position: absolute;
+  left: 0;
+}

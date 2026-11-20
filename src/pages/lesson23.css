@@ -1,0 +1,152 @@
+/* 第 23 课 · 动画与过渡样式
+   约定：全部类名 l23- 前缀，不与 App.css 的通用类（.card/.row/.hint）冲突；
+   本文件是三条教学线的 CSS 侧：transition（class 切换）、退场动画、View Transitions，
+   最后一节是 prefers-reduced-motion 全局降级——无障碍硬要求，必看。 */
+
+/* —— 铁律卡（Lesson23.jsx） —— */
+.l23-rule-card {
+  border-left: 4px solid #f59e0b;
+  background: #fffbeb;
+}
+
+.l23-rule-card ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 8px 0 0;
+}
+
+.l23-rule-card li {
+  margin: 6px 0;
+  color: inherit; /* 覆盖 App.css 里 .card li 的样式惯性，颜色交给下面两个类 */
+}
+
+.l23-do {
+  color: #15803d;
+}
+
+.l23-dont {
+  color: #b91c1c;
+}
+
+/* —— ① FadeToggle：进入过渡 —— */
+/* 常态类（基座）：起止值 + transition 都声明在这里。
+   隐藏态类只覆盖起止值、不重复 transition——两处都写 transition 的话，
+   改动时容易只改一处，两个方向的动画时长就漂移了。 */
+.l23-fade-box {
+  width: 180px;
+  height: 72px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 600;
+  background: linear-gradient(135deg, #6366f1, #34d399);
+
+  /* 常态 = 不透明 + 原位原大小 */
+  opacity: 1;
+  transform: translateX(0) scale(1);
+
+  /* transition 三要素：属性 时长 缓动函数。
+     声明在基座类上，"隐藏→显示"和"显示→隐藏"两个方向都吃这条过渡。 */
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+/* 隐藏态：只改起止值。位移 + 缩小都是 transform 的分量，合成器一次搞定 */
+.l23-fade-box--hidden {
+  opacity: 0;
+  transform: translateX(24px) scale(0.92);
+}
+
+/* —— ② ExitAnimation：退场动画 —— */
+.l23-exit-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.l23-exit-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+  background: #f9fafb;
+
+  /* 常态 = 不透明 + 原位 */
+  opacity: 1;
+  transform: translateX(0);
+
+  /* ⚠️ 这里的 0.4s 必须与 ExitAnimation.jsx 的 EXIT_DURATION_MS = 400 对齐——
+     CSS 动画钟和 JS 卸载钟是两个时钟：不同步就会"演到一半被拖下台"（JS 先删数据）
+     或"台空了人还没走"（CSS 播完了元素还挂着）。 */
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* 退场中：渐变到透明 + 右移出列。
+   注意 height 没动——动 height 每帧重排（违反铁律），所以"其余项补位收缩"
+   发生在真正卸载那一刻，是瞬间的；想让补位也丝滑要用 FLIP，见 doc「性能注意」。 */
+.l23-exit-item--leaving {
+  opacity: 0;
+  transform: translateX(40px);
+}
+
+/* —— ③ ViewTransitionDemo —— */
+.l23-vt-tab--active {
+  font-weight: 700;
+  outline: 2px solid #6366f1;
+  outline-offset: 1px;
+}
+
+.l23-vt-panel {
+  min-height: 130px;
+  padding: 16px 20px;
+  border-radius: 10px;
+  color: #fff;
+  margin-top: 8px;
+
+  /* View Transitions 教学核心：
+     不设 view-transition-name 时，startViewTransition 动画的是整页根快照
+     （整个页面一起淡切）；给元素起了名字，动画就收窄为"这个元素自己的新旧照片"，
+     页面其余部分纹丝不动。
+     铁律：同一个 name 同一时刻只能出现在一个元素上，否则过渡直接失效。 */
+  view-transition-name: l23-panel;
+}
+
+.l23-vt-panel h3 {
+  margin: 0 0 8px;
+}
+
+.l23-vt-panel--today {
+  background: #6366f1;
+}
+
+.l23-vt-panel--next {
+  background: #0ea5e9;
+}
+
+.l23-vt-panel--retro {
+  background: #10b981;
+}
+
+/* —— 全局降级：prefers-reduced-motion ——
+   用户在系统设置里开启"减少动态效果"（iOS「减弱动态效果」/ macOS、Windows 同名选项），
+   常见原因是前庭功能障碍：大面积位移动画会引发眩晕恶心。这是无障碍硬要求，不是可选项。
+   下面一处 @media 覆盖本课所有 CSS 动画：transition/animation 被掐掉后，
+   属性值瞬间跳到终态，没有中间帧。View Transitions 的快照动画不走这里的 CSS，
+   它的降级闸门在 ViewTransitionDemo.jsx 的 JS（matchMedia + 直接 setState）。 */
+@media (prefers-reduced-motion: reduce) {
+  .l23-fade-box,
+  .l23-exit-item,
+  .l23-vt-panel {
+    /* 用 none：属性值直接跳终态。
+       如果代码依赖 transitionend 事件驱动下一步（本课的 setTimeout 方案不依赖），
+       要改用 0.01ms 而不是 none——时长不为零，事件仍会立即触发，逻辑链不断。 */
+    transition: none !important;
+    animation: none !important;
+  }
+}

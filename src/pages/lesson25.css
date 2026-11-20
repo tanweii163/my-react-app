@@ -1,0 +1,319 @@
+/* 第 25 课 · 学习护照样式
+   约定：全部类名 l25- 前缀，不与 App.css / index.css 的通用类冲突；
+   卡片骨架、进度条思路复用第 20 课的做法（外槽 + 内条，宽度绑定派生值），
+   这里只写本页特有的部分。 */
+
+/* —— 页头：课程名 + 三大篇章徽章 + 毕业致辞 —— */
+.l25-head-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* 徽章：小胶囊，三篇章各一色——护照的"签证页"隐喻 */
+.l25-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  border: 1px solid transparent;
+}
+
+.l25-badge-advanced {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4338ca;
+}
+
+.l25-badge-libs {
+  background: #ecfeff;
+  border-color: #a5f3fc;
+  color: #0e7490;
+}
+
+.l25-badge-final {
+  background: #fef3c7;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+/* 毕业致辞：一行引言感的浅色块，与普通卡片区分 */
+.l25-address {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-left: 4px solid #1f2430;
+  border-radius: 6px;
+}
+
+.l25-address strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.l25-address p {
+  margin: 0;
+  color: #374151;
+}
+
+/* —— 自检清单（PassportChecklist） —— */
+
+/* 进度区：大百分比 + 文案 + 进度条 + 全清按钮，横向排布换行友好 */
+.l25-progress {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.l25-progress .big-number {
+  margin: 0;
+  color: #1f2430;
+}
+
+.l25-progress-text {
+  color: #4b5563;
+}
+
+/* 外槽灰底圆角；内条绿色填充，宽度由内联 style 绑定派生百分比 */
+.l25-progress-track {
+  flex: 1;
+  min-width: 160px;
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.l25-progress-fill {
+  height: 100%;
+  background: #16a34a;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+/* 全清：破坏性操作用红色描边提醒，不做大红实底（避免误触时过于"顺手"） */
+.l25-clear-btn {
+  padding: 5px 14px;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  background: #fff;
+  color: #dc2626;
+  cursor: pointer;
+}
+
+.l25-clear-btn:hover {
+  background: #fef2f2;
+}
+
+/* 篇章分组：左侧色条区分篇章，与结构图的篇章色一一对应 */
+.l25-section {
+  margin-top: 16px;
+  padding-left: 10px;
+  border-left: 3px solid #dfe3ec;
+}
+
+.l25-section h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+}
+
+.l25-section h3 small {
+  color: #6b7280;
+  font-weight: normal;
+}
+
+.l25-section-tag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #fff;
+  background: #6b7280;
+}
+
+/* 课号徽标：等宽小圆片，扫一眼知道检查项属于哪课 */
+.l25-lesson-badge {
+  flex-shrink: 0;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  background: #eef1f7;
+  color: #4b5563;
+}
+
+/* 勾选项本体：App.css 的 .card li 已给 flex/虚线分隔，
+   这里只补行距与"完成态"的底色（划线变灰由 .card li.done label 负责） */
+.l25-item {
+  padding: 7px 4px;
+}
+
+.l25-item.done {
+  background: #f0fdf4;
+  border-radius: 6px;
+}
+
+/* —— 课程总结结构图（CourseSummary） —— */
+
+.l25-map {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  max-width: 640px;
+  margin: 12px auto 0;
+}
+
+/* 块间连接条：主线"递进"的视觉语言 */
+.l25-map-arrow {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+
+.l25-stage {
+  padding: 10px 14px;
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+  background: #fff;
+}
+
+/* 篇章左侧色条：与自检清单、徽章同色系，全页一种篇章一种颜色 */
+.l25-stage-base {
+  border-left: 4px solid #6b7280;
+}
+
+.l25-stage-advanced {
+  border-left: 4px solid #6366f1;
+}
+
+.l25-stage-libs {
+  border-left: 4px solid #06b6d4;
+}
+
+.l25-stage-final {
+  border-left: 4px solid #d97706;
+}
+
+/* 终点块：毕业，深色实底压轴 */
+.l25-stage-grad {
+  text-align: center;
+  background: #1f2430;
+  color: #fff;
+  border-color: #1f2430;
+  font-weight: 600;
+}
+
+.l25-stage-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.l25-stage-tag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #fff;
+}
+
+.l25-stage-tag-base {
+  background: #6b7280;
+}
+
+.l25-stage-tag-advanced {
+  background: #6366f1;
+}
+
+.l25-stage-tag-libs {
+  background: #06b6d4;
+}
+
+.l25-stage-tag-final {
+  background: #d97706;
+}
+
+.l25-stage-line {
+  margin: 6px 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.l25-stage-can {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.l25-can-label {
+  font-weight: 600;
+  color: #16a34a;
+}
+
+/* —— 后续路线（RoadMap） —— */
+
+/* 三卡网格：窄屏自动落成单列（minmax + auto-fit 免媒体查询） */
+.l25-route-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.l25-route {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.l25-route h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.l25-route-tag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #fff;
+  background: #1f2430;
+}
+
+.l25-route-intro {
+  flex: 1;
+  margin: 0;
+  font-size: 0.88rem;
+  color: #374151;
+}
+
+/* 行动框：绿色系，"现在就能做的事"与导论正文区分 */
+.l25-route-action {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.l25-action-label {
+  display: block;
+  font-weight: 600;
+  color: #16a34a;
+  margin-bottom: 2px;
+}
