@@ -29,6 +29,11 @@
 | 13 | 错误边界 | [doc/lesson-13.md](lesson-13.md) | `/lesson/13` | `src/components/lesson13/` |
 | 14 | 并发渲染 | [doc/lesson-14.md](lesson-14.md) | `/lesson/14` | `src/components/lesson14/` |
 | 15 | 测试入门 | [doc/lesson-15.md](lesson-15.md) | `/lesson/15` | `src/components/lesson15/` |
+| 16 | TanStack Query 数据请求 | [doc/lesson-16.md](lesson-16.md) | `/lesson/16` | `src/components/lesson16/` |
+| 17 | react-hook-form + zod 表单 | [doc/lesson-17.md](lesson-17.md) | `/lesson/17` | `src/components/lesson17/` |
+| 18 | Zustand 状态管理 | [doc/lesson-18.md](lesson-18.md) | `/lesson/18` | `src/components/lesson18/` |
+| 19 | React 19 新特性 | [doc/lesson-19.md](lesson-19.md) | `/lesson/19` | `src/components/lesson19/` |
+| 20 | 综合实战 II：课程进度看板 | [doc/lesson-20.md](lesson-20.md) | `/lesson/20` | `src/components/lesson20/` |
 
 ## 课程主线（一条致学习的暗线）
 
@@ -49,6 +54,12 @@ UI = f(state)                    ← 第 1 课：一切的开始
   + 渲染出错的兜底               ← 第 13 课：ErrorBoundary
   + 大列表不卡输入               ← 第 14 课：useTransition/useDeferredValue
   + 给代码上保险                 ← 第 15 课：Vitest + Testing Library
+  ──────────── 实战库篇 ────────────
+  + 请求库                       ← 第 16 课：TanStack Query
+  + 表单库                       ← 第 17 课：react-hook-form + zod
+  + 状态库                       ← 第 18 课：Zustand
+  + 最新语言特性                 ← 第 19 课：React 19 Actions
+  + 生态整合                     ← 第 20 课：综合实战 II
 ```
 
 ## 项目结构约定
