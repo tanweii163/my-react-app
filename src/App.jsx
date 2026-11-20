@@ -10,41 +10,16 @@ import './App.css'
 
 function App() {
   return (
-    <div className="page">
-      <header>
-        <h1>第 1 课：JSX、Props、State</h1>
-        <p>
-          {/* 这就是 JSX 注释，写在 {} 里 */}
-          你好，{name}！今天是学习 React 的第 {isLearning ? '一' : '零'} 天。
-        </p>
-        <p>
-          表达式可以出现在任何地方：{2 + 3}、{'字符串'.toUpperCase()}、
-          {today}
-        </p>
-      </header>
-
-      <main>
-        {/* ---- 1. Props：父组件把数据传给子组件 ---- */}
-        {/* Greeting 像函数一样接收参数：name="小明" 就是在传 props */}
-        <Greeting name="小明" />
-        <Greeting name="小红" mood="😄" />
-
-        {/* children 是一种特殊的 prop：写在标签中间的内容 */}
-        <Greeting name="(children 演示)">
-          <em>我是写在标签里的 children</em>
-        </Greeting>
-
-        {/* ---- 2. State：组件自己的、会变化的记忆 ---- */}
-        <Counter />
-
-        {/* ---- 3. 列表渲染 + 受控表单 ---- */}
-        <TodoList />
-
-        {/* ---- 4. useEffect：副作用（定时器 / 数据请求） ---- */}
-        <TimerDemo />
-        <UserList />
-      </main>
-    </div>
+    <>
+      {/* NavLink 比 Link 多一个本领：当前 URL 匹配时自动加 active 类
+          end 属性：默认 / 也会匹配所有路径，加了它只有“正好是 /”才算激活 */}
+      <nav className="top-nav">
+        <NavLink to="/" end>首页</NavLink>
+        <NavLink to="/lesson/1">第 1 课</NavLink>
+        <NavLink to="/lesson/2">第 2 课</NavLink>
+      </nav>
+      <Outlet />
+    </>
   )
 }
 
