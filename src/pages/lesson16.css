@@ -1,0 +1,131 @@
+/* 第 16 课专属样式：只加 App.css 没有的类，不动公共样式（类名带 l16- 前缀防撞） */
+
+/* 甲乙面板并排；窄屏退化为单列 */
+.l16-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+  .l16-panel-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.l16-panel {
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+  padding: 12px 16px;
+  background: #fafbff;
+}
+
+.l16-panel h3 {
+  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* queryKey 展示成"门牌号"小牌子 */
+.l16-key-tag {
+  background: #eef1f7;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.l16-panel-footer {
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin: 8px 0 0;
+}
+
+.l16-meta {
+  color: #6b7280;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* 失败红盒：和列表区分开的独立提示区 */
+.l16-error-box {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #b91c1c;
+}
+
+.l16-error-box p {
+  color: #b91c1c;
+  margin: 4px 0;
+}
+
+/* 开关/下拉的控制行 */
+.l16-toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+/* 网络日志：等宽字体 + 深色底，像 DevTools 的 Network 面板 */
+.l16-net-log {
+  background: #1f2430;
+  color: #d7dce8;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.8rem;
+  line-height: 1.7;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 8px 0;
+}
+
+/* 演示二的状态行：更新时间 + 新鲜/过期徽章 */
+.l16-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+  color: #374151;
+}
+
+.l16-badge {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.l16-badge-fresh {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.l16-badge-stale {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.l16-badge-pending {
+  background: #e0e7ff;
+  color: #3730a3;
+  animation: l16-pulse 1s ease-in-out infinite;
+}
+
+@keyframes l16-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}

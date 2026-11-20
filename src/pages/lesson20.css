@@ -1,0 +1,222 @@
+/* 第 20 课 · 课程进度看板样式
+   约定：全部类名 l20- 前缀，不与 App.css 的通用类（.card/.row/.hint）冲突；
+   布局骨架、卡片、按钮样式复用 App.css，这里只写"看板特有"的部分。 */
+
+/* —— 页头完成率进度条（Lesson20.jsx 的 CompletionBar） —— */
+.l20-completion {
+  margin-top: 12px;
+}
+
+.l20-completion-label {
+  font-size: 0.9rem;
+  color: #4b5563;
+  margin-bottom: 4px;
+}
+
+/* 外槽：灰底圆角槽；内条：绿色填充，宽度由内联 style 绑定派生百分比 */
+.l20-completion-track {
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.l20-completion-fill {
+  height: 100%;
+  background: #22c55e;
+  border-radius: 999px;
+  /* 宽度变化的过渡动画：勾掉一门课，进度条平滑伸缩而非跳变 */
+  transition: width 0.25s ease;
+}
+
+/* —— 上半张：1–15 课进度网格（Board.jsx） —— */
+.l20-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.l20-tile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+/* 完成的课：文字变灰划线 + 底色微绿——状态一眼可辨，不用读文字 */
+.l20-tile.done {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.l20-tile.done .l20-tile-done span {
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+.l20-tile-done {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 0.88rem;
+}
+
+.l20-tile-star {
+  border: none;
+  background: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+
+.l20-tile-star:hover {
+  background: #fef9c3;
+}
+
+/* 统计行：数字加粗放大一点点，"只看未完成"靠右 */
+.l20-stats {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.l20-stats strong {
+  font-size: 1.05rem;
+}
+
+.l20-filter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* —— 下半张：资源库 —— */
+
+/* 表单：纵向排布字段，与 .card form 的横排 flex 区分（本页字段多，横排挤） */
+.l20-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 8px 0 4px;
+}
+
+.l20-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.l20-field label {
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.l20-field input {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.92rem;
+}
+
+.l20-field input:focus {
+  outline: 2px solid #93c5fd;
+  border-color: #3b82f6;
+}
+
+/* 校验错误内联提示（AddResourceForm / Board / ResourceCard 共用） */
+.field-error {
+  color: #dc2626;
+  font-size: 0.85rem;
+  margin: 2px 0 0;
+}
+
+/* 资源卡片列表 */
+.l20-res-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+  list-style: none;
+}
+
+.l20-res-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+/* 课号徽标：等宽小圆片，扫一眼就知道资源属于哪课 */
+.l20-res-lesson {
+  flex: none;
+  min-width: 40px;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1d4ed8;
+  background: #dbeafe;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.l20-res-main {
+  flex: 1;
+  min-width: 0; /* 允许长标题省略号截断，不把点赞按钮挤出卡片 */
+}
+
+.l20-res-main a {
+  color: #1f2430;
+  text-decoration: none;
+}
+
+.l20-res-main a:hover {
+  text-decoration: underline;
+}
+
+.l20-res-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+/* 失败开关：小号复选框，带 title 提示（悬停可读说明） */
+.l20-fail-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.l20-like-btn {
+  border: 1px solid #fde047;
+  background: #fefce8;
+  border-radius: 999px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.l20-like-btn:hover {
+  background: #fef9c3;
+}
+
+.l20-like-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}

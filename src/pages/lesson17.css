@@ -1,0 +1,63 @@
+/* 第 17 课专属样式：字段纵向排列、错误红字、预览盒、提交结果 pre。
+   卡片/行/提示复用 App.css、index.css 的 .card/.row/.hint */
+
+/* .card form 在 App.css 里是横向 flex；本课字段多，改成纵向网格堆叠。
+   写满 .card form.lesson17-form 是为了在优先级上稳赢那条横向规则 */
+.card form.lesson17-form {
+  display: grid;
+  gap: 12px;
+  max-width: 460px;
+}
+
+/* 字段单元：标签在上、控件在下、错误再往下，视线一条线扫完 */
+.lesson17-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lesson17-field label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* index.css 只管了 input，select / textarea 这里补齐同样的外观 */
+.lesson17-field select,
+.lesson17-field textarea {
+  font: inherit;
+  padding: 6px 10px;
+  border: 1px solid #c8cdd8;
+  border-radius: 6px;
+}
+
+/* 内联错误：紧贴自己字段的红字，不抢整页的注意力 */
+.lesson17-error {
+  color: #b91c1c;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* watch 实时预览盒：虚线边框暗示"这是草稿态的预览，不是提交结果" */
+.lesson17-preview {
+  border: 1px dashed #c8cdd8;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+}
+
+.lesson17-preview a {
+  color: #1d4ed8;
+  word-break: break-all;
+}
+
+/* 提交结果：等宽字体展示 JSON，稍微缩字号防溢出 */
+.lesson17-result pre {
+  background: #e8eaf0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  overflow: auto;
+  margin: 8px 0 0;
+}

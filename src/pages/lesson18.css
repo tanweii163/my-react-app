@@ -1,0 +1,43 @@
+/* 第 18 课样式：只补本课需要的少量类，其余复用 App.css 的 .card/.row/.big-number/.hint */
+.l18-list {
+  list-style: none;
+  padding: 0;
+  columns: 3;
+  column-gap: 24px;
+}
+
+.l18-list li {
+  break-inside: avoid;
+  padding: 4px 0;
+}
+
+.l18-summary {
+  align-items: center;
+  gap: 12px;
+}
+
+.l18-block {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 12px 0;
+}
+
+.l18-block-title {
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.l18-layer {
+  border-left: 3px solid #646cff;
+  padding: 6px 10px;
+  margin: 8px 0 8px 16px;
+  background: #f7f7fb;
+  border-radius: 0 6px 6px 0;
+}
+
+@media (max-width: 700px) {
+  .l18-list {
+    columns: 1;
+  }
+}

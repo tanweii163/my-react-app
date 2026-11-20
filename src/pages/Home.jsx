@@ -96,6 +96,36 @@ const lessons = [
     desc: 'Vitest + Testing Library；reducer 纯函数测试；组件与 Hook 测试',
     files: ['src/pages/Lesson15.jsx', 'src/components/lesson15/'],
   },
+  {
+    path: '/lesson/16',
+    title: '第 16 课 · TanStack Query 数据请求',
+    desc: 'useQuery/useMutation；缓存与失效；与手写 useFetch 对比',
+    files: ['src/pages/Lesson16.jsx', 'src/components/lesson16/'],
+  },
+  {
+    path: '/lesson/17',
+    title: '第 17 课 · react-hook-form + zod 表单',
+    desc: 'schema 校验；register/handleSubmit；错误展示；与手写表单对比',
+    files: ['src/pages/Lesson17.jsx', 'src/components/lesson17/'],
+  },
+  {
+    path: '/lesson/18',
+    title: '第 18 课 · Zustand 状态管理',
+    desc: 'create store；persist 持久化；何时需要状态库',
+    files: ['src/pages/Lesson18.jsx', 'src/components/lesson18/'],
+  },
+  {
+    path: '/lesson/19',
+    title: '第 19 课 · React 19 新特性',
+    desc: 'useActionState；useOptimistic；useFormStatus；Actions 模式',
+    files: ['src/pages/Lesson19.jsx', 'src/components/lesson19/'],
+  },
+  {
+    path: '/lesson/20',
+    title: '第 20 课 · 综合实战 II：课程进度看板',
+    desc: '整合 16–19：Zustand 进度持久化 + Query 资源库 + 表单校验 + 乐观更新',
+    files: ['src/pages/Lesson20.jsx', 'src/components/lesson20/'],
+  },
 ]
 
 function Home() {
