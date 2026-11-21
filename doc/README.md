@@ -14,8 +14,8 @@
 
 | 课 | 主题 | 讲义 | 页面路由 | 核心源码 |
 |---|---|---|---|---|
-| 1 | JSX、Props、State | [doc/lesson-1.md](lesson-1.md) | `/lesson/1` | `src/pages/Lesson1.jsx`、`src/components/Greeting.jsx`、`Counter.jsx`、`TodoList.jsx` |
-| 2 | useEffect 与副作用 | [doc/lesson-2.md](lesson-2.md) | `/lesson/2` | `src/components/TimerDemo.jsx`、`UserList.jsx` |
+| 1 | JSX、Props、State | [doc/lesson-1.md](lesson-1.md) | `/lesson/1` | `src/pages/Lesson1.jsx`、`src/components/lesson1/` |
+| 2 | useEffect 与副作用 | [doc/lesson-2.md](lesson-2.md) | `/lesson/2` | `src/components/lesson2/` |
 | 3 | React Router 与多页面 SPA | [doc/lesson-3.md](lesson-3.md) | `/`（路由本身） | `src/main.jsx`、`src/App.jsx`、`src/pages/Home.jsx` |
 | 4 | 状态提升与组件通信 | [doc/lesson-4.md](lesson-4.md) | `/lesson/4` | `src/components/lesson4/` |
 | 5 | useRef 与 DOM 操作 | [doc/lesson-5.md](lesson-5.md) | `/lesson/5` | `src/components/lesson5/` |

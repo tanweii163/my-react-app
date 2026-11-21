@@ -1,8 +1,8 @@
 // 第 1 课页面：JSX、Props、State
 // 从 App.jsx 拆出来 —— 路由让“每课一页”，App.jsx 只当布局外壳
-import Greeting from '../components/Greeting.jsx'
-import Counter from '../components/Counter.jsx'
-import TodoList from '../components/TodoList.jsx'
+import Greeting from '../components/lesson1/Greeting.jsx'
+import Counter from '../components/lesson1/Counter.jsx'
+import TodoList from '../components/lesson1/TodoList.jsx'
 
 function Lesson1() {
   const name = 'React 学习者'

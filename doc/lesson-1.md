@@ -1,6 +1,6 @@
 # 第 1 课 · JSX、Props、State
 
-对应页面：<http://localhost:5173/lesson/1>（源码 `src/pages/Lesson1.jsx`、`src/components/Greeting.jsx`、`src/components/Counter.jsx`、`src/components/TodoList.jsx`）。
+对应页面：<http://localhost:5173/lesson/1>（源码 `src/pages/Lesson1.jsx`、`src/components/lesson1/Greeting.jsx`、`src/components/lesson1/Counter.jsx`、`src/components/lesson1/TodoList.jsx`）。
 
 ## 学习目标
 
@@ -127,20 +127,20 @@ key 是 React 用来识别"列表里哪个是哪个"的身份证：重渲染时�
 - 同一个 `<Greeting>` 用了三种姿势：只传 `name`、传 `name + mood`、传 children——props 的三种用法一屏看全。
 - `<Counter />`、`<TodoList />` 不带任何 props，说明组件也可以完全自治、自己管自己的 state。
 
-### `src/components/Greeting.jsx` —— Props 教具
+### `src/components/lesson1/Greeting.jsx` —— Props 教具
 
 - 解构参数 `{ name, mood = '🙂', children }`：一行同时演示了取值、默认值、children。
 - `{children && <p>children 内容：{children}</p>}`：条件渲染的惯用写法——`&&` 左边为假值时右边不渲染。没传 children 时这个 `<p>` 整个消失。
 - 全程没有修改 props 的代码，身体力行"props 只读"。
 
-### `src/components/Counter.jsx` —— useState 教具
+### `src/components/lesson1/Counter.jsx` —— useState 教具
 
 - 两个独立 state：`count`（数字）和 `history`（字符串数组）。**相关的数据不必强行合成一个对象**，按粒度拆开往往更好维护。
 - `add` 里两个 setter 都用函数式更新 `setCount((c) => c + step)`、`setHistory((h) => [...h, ...])`，并注释了原因："c 是最新的 count"。
 - `{history.length ? history.join('、') : '（暂无）'}`：又一处条件渲染 + 表达式。
 - `.hint` 那句话是刻意设计的实验：去控制台试图直接改 count，体会铁律 1。
 
-### `src/components/TodoList.jsx` —— 不可变更新 + 受控表单 + 列表 key，三合一
+### `src/components/lesson1/TodoList.jsx` —— 不可变更新 + 受控表单 + 列表 key，三合一
 
 - `addTodo`：`[...t, { id: Date.now(), text, done: false }]` 是"不可变追加"的标准写法；`draft.trim()` 空则 `return`，小防御。
 - `toggle`：`t.map(...)` 里只有目标项换成新对象 `{ ...todo, done: !todo.done }`，其余项**原样引用保留**——不可变更新不代表全部重建，够用就好。

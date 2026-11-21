@@ -16,13 +16,13 @@ const lessons = [
     path: '/lesson/1',
     title: '第 1 课 · JSX、Props、State',
     desc: '组件是什么；props 单向数据流；useState 与事件处理；列表渲染与受控表单',
-    files: ['src/pages/Lesson1.jsx', 'src/components/Greeting.jsx', 'src/components/Counter.jsx', 'src/components/TodoList.jsx'],
+    files: ['src/pages/Lesson1.jsx', 'src/components/lesson1/'],
   },
   {
     path: '/lesson/2',
     title: '第 2 课 · useEffect 与副作用',
     desc: '渲染后执行；依赖数组；清理函数防泄漏；请求三态与竞态；派生数据不进 state',
-    files: ['src/pages/Lesson2.jsx', 'src/components/TimerDemo.jsx', 'src/components/UserList.jsx'],
+    files: ['src/pages/Lesson2.jsx', 'src/components/lesson2/'],
   },
   {
     path: '/lesson/4',

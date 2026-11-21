@@ -12,8 +12,8 @@
 
 本课对应的示例代码：
 
-- `src/components/TimerDemo.jsx` —— 定时器：清理函数与依赖数组
-- `src/components/UserList.jsx` —— 数据请求：loading / error / data / AbortController
+- `src/components/lesson2/TimerDemo.jsx` —— 定时器：清理函数与依赖数组
+- `src/components/lesson2/UserList.jsx` —— 数据请求：loading / error / data / AbortController
 - 页面入口在 `src/pages/Lesson2.jsx`
 
 ## 核心概念
@@ -127,7 +127,7 @@ const shown = users.filter(u => u.name.includes(keyword))
 
 ## 代码导读
 
-### `src/components/TimerDemo.jsx` —— 定时器与清理
+### `src/components/lesson2/TimerDemo.jsx` —— 定时器与清理
 
 - 顶部注释：本组件教 useEffect 的基本结构与清理函数。
 - `const [seconds, setSeconds] = useState(0)` + `const [running, setRunning] = useState(true)`：两个 state，`running` 是 effect 的依赖。
@@ -140,7 +140,7 @@ const shown = users.filter(u => u.name.includes(keyword))
 
 页面组件本身没有任何 state 和 effect，只负责排版引入两个示例卡片。这本身也是一个示范：**不是每个组件都需要副作用**，能只用纯渲染就不必用 useEffect。
 
-### `src/components/UserList.jsx` —— 请求四件套
+### `src/components/lesson2/UserList.jsx` —— 请求四件套
 
 - 四个 state：`users`（null = 还没拿到）、`loading`、`error`、`keyword`（筛选词）。
 - effect（依赖 `[]`，挂载后执行一次）：

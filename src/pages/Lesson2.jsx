@@ -1,6 +1,6 @@
 // 第 2 课页面：useEffect 与副作用
-import TimerDemo from '../components/TimerDemo.jsx'
-import UserList from '../components/UserList.jsx'
+import TimerDemo from '../components/lesson2/TimerDemo.jsx'
+import UserList from '../components/lesson2/UserList.jsx'
 
 function Lesson2() {
   return (
