@@ -39,6 +39,11 @@
 | 23 | 动画与过渡 | [doc/lesson-23.md](lesson-23.md) | `/lesson/23` | `src/components/lesson23/` |
 | 24 | 构建与部署 | [doc/lesson-24.md](lesson-24.md) | `/lesson/24` | `src/components/lesson24/` |
 | 25 | 毕业项目：学习护照 | [doc/lesson-25.md](lesson-25.md) | `/lesson/25` | `src/components/lesson25/` |
+| 26 | 可访问性 (a11y) | [doc/lesson-26.md](lesson-26.md) | `/lesson/26` | `src/components/lesson26/` |
+| 27 | 前端安全 | [doc/lesson-27.md](lesson-27.md) | `/lesson/27` | `src/components/lesson27/` |
+| 28 | 实时数据与 useSyncExternalStore | [doc/lesson-28.md](lesson-28.md) | `/lesson/28` | `src/components/lesson28/` |
+| 29 | 调试方法论与 DevTools | [doc/lesson-29.md](lesson-29.md) | `/lesson/29` | `src/components/lesson29/` |
+| 30 | 结业实战：迷你监控台 | [doc/lesson-30.md](lesson-30.md) | `/lesson/30` | `src/components/lesson30/` |
 
 ## 课程主线（一条致学习的暗线）
 
@@ -71,6 +76,12 @@ UI = f(state)                    ← 第 1 课：一切的开始
   + 动效                         ← 第 23 课：动画与过渡
   + 上线                         ← 第 24 课：构建与部署
   = 毕业                         ← 第 25 课：学习护照
+  ──────────── 工程素养篇 ────────────
+  + 所有人都能用                 ← 第 26 课：可访问性
+  + 不被攻击                     ← 第 27 课：前端安全
+  + 实时世界                     ← 第 28 课：useSyncExternalStore
+  + 找到并消灭 bug               ← 第 29 课：调试方法论
+  = 结业                         ← 第 30 课：迷你监控台
 ```
 
 ## 项目结构约定
