@@ -4,8 +4,9 @@
 //   <Outlet /> 是占位符 —— 当前 URL 匹配到的子页面在这里渲染。
 // 这样导航栏、页脚等公共部分只写一次，每个页面只管自己的内容。
 //
-// 路由表在 src/main.jsx：/ 是 Home，/lesson/1、/lesson/2 挂在这个布局下。
+// 路由表在 src/main.jsx：/ 是 Home，/lesson/N 全部挂在这个布局下。
 import { NavLink, Outlet } from 'react-router'
+import { lessons } from './pages/Home.jsx'
 import './App.css'
 
 function App() {
@@ -15,8 +16,13 @@ function App() {
           end 属性：默认 / 也会匹配所有路径，加了它只有“正好是 /”才算激活 */}
       <nav className="top-nav">
         <NavLink to="/" end>首页</NavLink>
-        <NavLink to="/lesson/1">第 1 课</NavLink>
-        <NavLink to="/lesson/2">第 2 课</NavLink>
+        {/* 课程链接不手写：.map() 从课程目录生成（和首页目录同一份数据），
+            加新课顶栏自动多一个链接；title 取“·”前的短标题，如“第 4 课” */}
+        {lessons.map((l) => (
+          <NavLink key={l.path} to={l.path}>
+            {l.title.split('·')[0].trim()}
+          </NavLink>
+        ))}
       </nav>
       <Outlet />
     </>

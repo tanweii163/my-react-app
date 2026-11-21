@@ -11,7 +11,8 @@
 import { Link } from 'react-router'
 
 // 课程目录：加新课只需要往这里加一条 + 新建一个页面文件 + 注册一条 Route
-const lessons = [
+// （App.jsx 顶部导航也从这份目录生成，不用再手写链接）
+export const lessons = [
   {
     path: '/lesson/1',
     title: '第 1 课 · JSX、Props、State',

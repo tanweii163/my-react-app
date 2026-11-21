@@ -1,6 +1,7 @@
 /* 页面布局样式 */
 .top-nav {
   display: flex;
+  flex-wrap: wrap; /* 课程一多一行放不下，自动换行 */
   gap: 8px;
   padding: 8px 0 16px;
   border-bottom: 1px solid #dfe3ec;
