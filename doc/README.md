@@ -49,6 +49,11 @@
 | 33 | i18n 国际化 | [doc/lesson-33.md](lesson-33.md) | `/lesson/33` | `src/components/lesson33/` |
 | 34 | Tailwind CSS | [doc/lesson-34.md](lesson-34.md) | `/lesson/34` | `src/components/lesson34/` |
 | 35 | PWA 与离线体验 | [doc/lesson-35.md](lesson-35.md) | `/lesson/35` | `src/components/lesson35/` |
+| 36 | E2E 测试 Playwright | [doc/lesson-36.md](lesson-36.md) | `/lesson/36` | `e2e/`、`playwright.config.js` |
+| 37 | framer-motion 动效库 | [doc/lesson-37.md](lesson-37.md) | `/lesson/37` | `src/components/lesson37/` |
+| 38 | 手写 SVG 数据可视化 | [doc/lesson-38.md](lesson-38.md) | `/lesson/38` | `src/components/lesson38/` |
+| 39 | Web Vitals 真实测量 | [doc/lesson-39.md](lesson-39.md) | `/lesson/39` | `src/components/lesson39/` |
+| 40 | 从 Mock 到真实后端 | [doc/lesson-40.md](lesson-40.md) | `/lesson/40` | `server/`、`src/components/lesson40/` |
 
 ## 课程主线（一条致学习的暗线）
 
@@ -93,6 +98,12 @@ UI = f(state)                    ← 第 1 课：一切的开始
   + 世界语言                     ← 第 33 课：i18n
   + 另一种样式哲学               ← 第 34 课：Tailwind CSS
   + 断网也能用                   ← 第 35 课：PWA
+  ──────────── 贯通篇 ────────────
+  + 端到端保障                   ← 第 36 课：Playwright
+  + 专业动效                     ← 第 37 课：framer-motion
+  + 把数据画出来                 ← 第 38 课：SVG 可视化
+  + 真实用户指标                 ← 第 39 课：Web Vitals
+  + 接上真实世界                 ← 第 40 课：真实后端
 ```
 
 ## 项目结构约定
