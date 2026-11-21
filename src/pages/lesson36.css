@@ -1,0 +1,56 @@
+/* 第 36 课 · 页面样式（l36- 前缀防污染，第 5 课老规矩）
+   复用 App.css 的 .card / .row / .big-number / .hint；这里只放本课特有的两块：
+   测试金字塔示意和真实测试输出终端块 */
+
+/* 测试金字塔：三层宽度递减 = 数量递减，宽度递增 = 离真实用户越近、越慢越贵 */
+.l36-pyramid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.l36-pyramid-tier {
+  padding: 8px 16px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+  min-width: 180px;
+}
+
+/* 底层最宽（单元测试最多）、颜色最"稳"；顶层最窄（E2E 最少）但最醒目 */
+.l36-pyramid-e2e {
+  width: 34%;
+  background: #d64545;
+}
+
+.l36-pyramid-integration {
+  width: 62%;
+  background: #d69245;
+}
+
+.l36-pyramid-unit {
+  width: 90%;
+  background: #3f9d55;
+}
+
+.l36-pyramid-caption {
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+}
+
+/* 真实测试输出：终端观感。白字深底、保留换行、可横向滚动（输出行可能很长） */
+.l36-terminal {
+  background: #1e1e28;
+  color: #d4d4d4;
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre;
+}

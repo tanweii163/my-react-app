@@ -1,0 +1,285 @@
+/* 第 40 课 · 从 Mock 到真实后端 样式
+   约定：全部类名 l40- 前缀，不与 App.css / index.css 的通用类（.card/.row/.hint/.big-number）冲突。
+   通用布局复用 App.css 的 .card 与 index.css 的 .hint，这里只写本课新东西：
+   连接状态条与状态点（沿用第 30 课的色彩语义）、命令行代码块、"四个问题"网格、路线图分组表。 */
+
+/* —— 启动指引 —— */
+.l40-steps li {
+  margin: 6px 0;
+}
+
+.l40-steps code {
+  background: #eef1f7;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+/* 命令行块：深色终端风——curl 命令值得被当成"正片"展示 */
+.l40-cmd {
+  background: #1f2430;
+  color: #d7dce8;
+  padding: 12px 14px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.86rem;
+  line-height: 1.7;
+  margin: 8px 0;
+}
+
+/* —— 连接状态条 —— */
+.l40-statusbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+  background: #f7f8fc;
+}
+
+/* 状态点：绿=通，黄=握手中，红闪=重连，灰=断开（第 30 课的色彩语义原样沿用，
+   老学员看到颜色就知道含义——一致性本身就是可访问性） */
+.l40-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.l40-dot-open {
+  background: #16a34a;
+}
+
+.l40-dot-connecting {
+  background: #d97706;
+}
+
+.l40-dot-reconnecting {
+  background: #dc2626;
+  animation: l40-blink 0.9s ease-in-out infinite;
+}
+
+.l40-dot-closed {
+  background: #9ca3af;
+}
+
+@keyframes l40-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.l40-retry-meta {
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
+
+.l40-status-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.l40-status-actions button {
+  padding: 3px 10px;
+  border: 1px solid #dfe3ec;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.l40-status-actions button:hover:not(:disabled) {
+  background: #eef1f7;
+}
+
+.l40-status-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* —— 笔记区 —— */
+.l40-notes h3,
+.l40-tele h3 {
+  margin: 14px 0 6px;
+  font-size: 0.98rem;
+}
+
+.l40-note-meta {
+  color: #9ca3af;
+  margin-left: 8px;
+  font-weight: 400;
+}
+
+.l40-load-error {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #b91c1c;
+}
+
+.l40-load-error button {
+  padding: 3px 12px;
+  border: 1px solid #b91c1c;
+  border-radius: 6px;
+  background: #fff;
+  color: #b91c1c;
+  cursor: pointer;
+}
+
+.l40-load-error button:hover {
+  background: #fee2e2;
+}
+
+/* 服务器的 400 中文错误：红字 + 完整到达 UI——"错误信息说人话"的终点是用户眼前 */
+.l40-form-error {
+  color: #b91c1c;
+  margin: 4px 0;
+}
+
+.l40-danger-btn {
+  border: 1px dashed #f87171;
+  color: #b91c1c;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.l40-danger-btn:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+/* —— 遥测流：深色终端风（第 30 课同款视觉，学员零适应成本） —— */
+.l40-tele-list {
+  background: #1f2430;
+  border-radius: 8px;
+  padding: 8px 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+  line-height: 1.8;
+}
+
+.l40-tele-item {
+  display: flex;
+  gap: 10px;
+  border-bottom: none;
+  padding: 0;
+  color: #d7dce8;
+}
+
+.l40-tele-time {
+  color: #8b93a7;
+  flex-shrink: 0;
+}
+
+/* 级别用颜色+文字双重编码：[info]/[warn]/[error] 永远在场，颜色只是加速扫读 */
+.l40-tele-level {
+  font-weight: 700;
+}
+
+.l40-tele-log-info .l40-tele-level {
+  color: #7dd3fc;
+}
+
+.l40-tele-log-warn .l40-tele-level {
+  color: #fbbf24;
+}
+
+.l40-tele-log-error .l40-tele-level {
+  color: #f87171;
+}
+
+.l40-tele-price .l40-tele-body strong {
+  color: #34d399;
+}
+
+/* —— 四个问题网格：窄屏自动叠成一列 —— */
+.l40-blinds {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.l40-blind {
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 0;
+}
+
+.l40-blind h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.l40-blind p {
+  font-size: 0.9rem;
+  margin: 6px 0;
+}
+
+.l40-blind-label {
+  color: #6b7280;
+  font-weight: 600;
+}
+
+/* "现场"行是每个问题的行动入口：浅底色块让它和解释性文字区分开 */
+.l40-blind-scene {
+  background: #f0f7ff;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #1d4ed8;
+}
+
+/* —— 全课程路线图 —— */
+.l40-roadmap {
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.l40-roadmap-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #eef1f7;
+  align-items: baseline;
+}
+
+.l40-roadmap-row:last-child {
+  border-bottom: none;
+}
+
+.l40-roadmap-row:nth-child(odd) {
+  background: #f7f8fc;
+}
+
+.l40-roadmap-stage {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.l40-roadmap-text {
+  color: #374151;
+  font-size: 0.92rem;
+}
+
+/* 窄屏：路线图退化为上下两行 */
+@media (max-width: 560px) {
+  .l40-roadmap-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+/* 第 23 课立的规矩照办：系统开"减少动态效果"时掐掉闪烁，
+   状态语义由文字与颜色完整承载，动画只是锦上添花 */
+@media (prefers-reduced-motion: reduce) {
+  .l40-dot-reconnecting {
+    animation: none;
+  }
+}

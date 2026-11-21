@@ -26,3 +26,7 @@ dist-ssr
 # Next.js 子项目（第 31 课）
 next-app/.next
 next-app/out
+
+# Playwright 产物（第 36 课）
+test-results
+playwright-report

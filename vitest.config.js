@@ -23,5 +23,10 @@ export default defineConfig({
     // 每个测试文件显式 import，来源清晰、编辑器跳转和补全都更好，
     // 也逼着初学者看清这些函数到底是谁提供的（vitest，不是 JavaScript 内置）。
     globals: false,
+
+    // 第 36 课（Playwright E2E）：e2e/*.spec.js 是 Playwright 的测试文件，
+    // 不是 vitest 的——不加这条 exclude，vitest 会把它们也收集进来然后
+    // 报 "no tests" 失败（两种测试运行器的 test 函数不是同一个东西）。
+    exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**'],
   },
 })

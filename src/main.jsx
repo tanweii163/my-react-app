@@ -41,6 +41,11 @@ import Lesson32 from './pages/Lesson32.jsx'
 import Lesson33 from './pages/Lesson33.jsx'
 import Lesson34 from './pages/Lesson34.jsx'
 import Lesson35 from './pages/Lesson35.jsx'
+import Lesson36 from './pages/Lesson36.jsx'
+import Lesson37 from './pages/Lesson37.jsx'
+import Lesson38 from './pages/Lesson38.jsx'
+import Lesson39 from './pages/Lesson39.jsx'
+import Lesson40 from './pages/Lesson40.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -85,6 +90,11 @@ createRoot(document.getElementById('root')).render(
           <Route path="lesson/33" element={<Lesson33 />} />
           <Route path="lesson/34" element={<Lesson34 />} />
           <Route path="lesson/35" element={<Lesson35 />} />
+          <Route path="lesson/36" element={<Lesson36 />} />
+          <Route path="lesson/37" element={<Lesson37 />} />
+          <Route path="lesson/38" element={<Lesson38 />} />
+          <Route path="lesson/39" element={<Lesson39 />} />
+          <Route path="lesson/40" element={<Lesson40 />} />
         </Route>
       </Routes>
     </BrowserRouter>

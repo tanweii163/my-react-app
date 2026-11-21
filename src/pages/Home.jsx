@@ -216,6 +216,36 @@ const lessons = [
     desc: 'manifest；手写 Service Worker；缓存策略；build+preview 验证',
     files: ['src/pages/Lesson35.jsx', 'src/components/lesson35/'],
   },
+  {
+    path: '/lesson/36',
+    title: '第 36 课 · E2E 测试 Playwright',
+    desc: '真实浏览器自动化；关键用户路径；与单元测试的分工',
+    files: ['src/pages/Lesson36.jsx', 'e2e/', 'playwright.config.js'],
+  },
+  {
+    path: '/lesson/37',
+    title: '第 37 课 · framer-motion 动效库',
+    desc: 'motion 组件；AnimatePresence 正确退场；layout 动画；手势',
+    files: ['src/pages/Lesson37.jsx', 'src/components/lesson37/'],
+  },
+  {
+    path: '/lesson/38',
+    title: '第 38 课 · 手写 SVG 数据可视化',
+    desc: '柱/折/饼图从零构建；比例尺数学；图表无障碍',
+    files: ['src/pages/Lesson38.jsx', 'src/components/lesson38/'],
+  },
+  {
+    path: '/lesson/39',
+    title: '第 39 课 · Web Vitals 真实测量',
+    desc: 'web-vitals 库；LCP/INP/CLS 阈值；PerformanceObserver；RUM 概念',
+    files: ['src/pages/Lesson39.jsx', 'src/components/lesson39/'],
+  },
+  {
+    path: '/lesson/40',
+    title: '第 40 课 · 从 Mock 到真实后端',
+    desc: 'Node Express + ws 真服务器；替换第 28/30 课的 MockSocket',
+    files: ['src/pages/Lesson40.jsx', 'server/', 'src/components/lesson40/'],
+  },
 ]
 
 function Home() {

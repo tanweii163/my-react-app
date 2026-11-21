@@ -1,0 +1,160 @@
+/* 第 39 课 · 页面样式（l39- 前缀，避免与其他课冲突） */
+
+/* 五指标卡片网格 */
+.l39-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.l39-metric {
+  border: 1px solid #dfe3ec;
+  border-left-width: 5px;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff;
+}
+
+.l39-metric-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 分级配色：左色条 + 徽章同色系 */
+.l39-good {
+  border-left-color: #16a34a;
+  background: #f2fbf5;
+}
+
+.l39-ni {
+  border-left-color: #f59e0b;
+  background: #fffaf0;
+}
+
+.l39-poor {
+  border-left-color: #dc2626;
+  background: #fef4f4;
+}
+
+/* 无数据（INP 尚无交互）：灰 */
+.l39-none {
+  border-left-color: #9ca3af;
+  background: #f9fafb;
+}
+
+.l39-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #1f2430;
+  color: #fff;
+}
+
+.l39-good .l39-badge {
+  background: #16a34a;
+}
+
+.l39-ni .l39-badge {
+  background: #d97706;
+}
+
+.l39-poor .l39-badge {
+  background: #dc2626;
+}
+
+.l39-none .l39-badge {
+  background: #6b7280;
+}
+
+/* 指标大数字：复用 .big-number 的缩小版，避免行高过大 */
+.l39-value {
+  font-size: 1.7rem;
+  font-weight: 700;
+  margin: 6px 0 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.l39-threshold {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* 面板内小节标题 */
+.l39-panel h3 {
+  margin: 20px 0 8px;
+  font-size: 0.98rem;
+  border-top: 1px dashed #dfe3ec;
+  padding-top: 14px;
+}
+
+/* 长任务列表：红字强调"坏事发生了" */
+.l39-task-list li {
+  padding: 4px 0;
+  color: #b42318;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 空状态提示 */
+.l39-empty {
+  color: #6b7280;
+  font-size: 0.9rem;
+  padding: 6px 0;
+}
+
+/* 表格（阈值表 / 时间线 / 资源表共用） */
+.l39-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  font-size: 0.88rem;
+}
+
+.l39-table th,
+.l39-table td {
+  border: 1px solid #e5e7eb;
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.l39-table thead th {
+  background: #f3f4f6;
+}
+
+/* 资源名过长的兜底：截断不撑破表格 */
+.l39-res-name {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: monospace;
+}
+
+/* 资源计数说明 */
+.l39-count {
+  align-self: center;
+  color: #6b7280;
+  font-size: 0.82rem;
+}
+
+/* 优化清单：去掉默认列表样式，改用绿色对勾感 */
+.l39-checklist {
+  list-style: none;
+  padding: 0;
+}
+
+.l39-checklist li {
+  padding: 6px 0 6px 26px;
+  position: relative;
+}
+
+.l39-checklist li::before {
+  content: '✓';
+  position: absolute;
+  left: 6px;
+  color: #16a34a;
+  font-weight: 700;
+}

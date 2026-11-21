@@ -1,0 +1,200 @@
+/* 第 37 课 · framer-motion 动效库样式
+   约定：全部类名 l37- 前缀，不与 App.css 通用类（.card/.row/.hint）冲突；
+   只写"外观"，不写任何 transition/animation——动画全部交给库的声明式 props
+   （两个引擎抢同一属性是本课易错点之一，见 doc）。 */
+
+/* —— 演示一：入场盒子（tween vs spring） —— */
+.l37-enter-box {
+  min-width: 200px;
+  padding: 18px 22px;
+  border-radius: 12px;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.l37-enter-box--alt {
+  background: #7c3aed;
+}
+
+/* —— 演示二：手势芯片 —— */
+.l37-chip {
+  padding: 14px 26px;
+  border: none;
+  border-radius: 999px;
+  background: #0ea5e9;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* —— 演示三：错峰入场列表 —— */
+.l37-stagger {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: grid;
+  gap: 10px;
+}
+
+.l37-stagger li {
+  max-width: 340px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #14532d;
+  font-weight: 600;
+}
+
+/* —— ExitList：退场名单 —— */
+.l37-exit-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  display: grid;
+  gap: 8px;
+}
+
+.l37-exit-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #f1f5f9;
+}
+
+/* —— LayoutAnimation 演示一：换位列表 —— */
+.l37-flip-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  display: grid;
+  gap: 8px;
+  max-width: 360px;
+}
+
+.l37-flip-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+}
+
+.l37-flip-label {
+  flex: 1;
+  font-weight: 600;
+  color: #3730a3;
+}
+
+.l37-flip-item button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #c7d2fe;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.l37-flip-item button:hover {
+  background: #e0e7ff;
+}
+
+/* —— LayoutAnimation 演示二：展开卡片（宽度由 --open 类切换，动画归 layout 属性管） —— */
+.l37-expand-card {
+  width: 280px;
+  padding: 14px 18px;
+  border: 2px solid #10b981;
+  border-radius: 16px;
+  background: #ecfdf5;
+  cursor: pointer;
+  overflow: hidden;
+  user-select: none;
+}
+
+.l37-expand-card--open {
+  width: min(560px, 100%);
+}
+
+.l37-expand-card h4 {
+  margin: 0;
+  color: #065f46;
+}
+
+.l37-expand-card p {
+  margin: 10px 0 0;
+  color: #047857;
+}
+
+/* —— LayoutAnimation 演示三：layoutId 缩略图 ↔ 大图 —— */
+.l37-thumb-row {
+  display: flex;
+  gap: 12px;
+  padding: 0;
+  margin: 8px 0 0;
+}
+
+.l37-thumb {
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.l37-hero {
+  width: 240px;
+  height: 160px;
+  border-radius: 18px;
+  cursor: pointer;
+}
+
+/* 同一 layoutId 的两个组件共享同一套外观——形变过渡才像"同一个元素长大" */
+.l37-thumb--emerald,
+.l37-hero--emerald {
+  background: linear-gradient(135deg, #6ee7b7, #059669);
+}
+
+.l37-thumb--sky,
+.l37-hero--sky {
+  background: linear-gradient(135deg, #7dd3fc, #0284c7);
+}
+
+.l37-thumb--amber,
+.l37-hero--amber {
+  background: linear-gradient(135deg, #fcd34d, #d97706);
+}
+
+.l37-thumb--rose,
+.l37-hero--rose {
+  background: linear-gradient(135deg, #fda4af, #e11d48);
+}
+
+/* —— 选型卡两栏 —— */
+.l37-pick-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.l37-pick-cols h4 {
+  margin: 0 0 8px;
+}
+
+.l37-pick-cols ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+@media (max-width: 640px) {
+  .l37-pick-cols {
+    grid-template-columns: 1fr;
+  }
+}

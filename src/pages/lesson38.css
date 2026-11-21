@@ -1,0 +1,162 @@
+/* 第 38 课 · 手写 SVG 数据可视化 —— 页面与图表样式（l38- 前缀，避免与其他课冲突）
+   只补图表特有的样式；通用卡片/行布局复用 App.css 的 .card / .row / .hint。 */
+
+/* 图表容器：reset 掉 figure 的默认外边距，图 → 图例 → （隐藏表）垂直排列 */
+.l38-figure {
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.l38-svg {
+  display: block; /* svg 默认是 inline，底部会多出基线空隙 */
+}
+
+/* ── 无障碍"视觉隐藏"（sr-only）──
+   视觉上消失，屏幕阅读器 / 爬虫照常读到。
+   铁律：不能用 display:none——那会从无障碍树和 SEO 里一起消失，等于没写。 */
+.l38-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── 柱状图 ── */
+.l38-bar {
+  fill: #4f6df5;
+  cursor: pointer;
+  /* SVG2 把 rect 的 x/y/width/height 定义成几何 CSS 属性，transition 直接生效：
+     数据变化时柱子平滑"长"到新高度，而不是瞬间跳变 */
+  transition:
+    y 0.6s ease,
+    height 0.6s ease,
+    fill 0.2s ease;
+}
+.l38-bar:hover {
+  fill: #3451d2;
+}
+
+.l38-grid {
+  stroke: #e5e9f2;
+  stroke-width: 1;
+}
+.l38-axis {
+  stroke: #c9cfdd;
+  stroke-width: 1.5;
+}
+.l38-tick {
+  font-size: 11px;
+  fill: #6b7280;
+}
+
+/* ── 自绘 tooltip（柱状图 / 折线图共用）── */
+.l38-tip-box {
+  fill: #1f2430;
+}
+.l38-tip-text {
+  fill: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ── 折线图 ── */
+.l38-line-chart {
+  cursor: crosshair; /* 告诉用户"这里可以精确取样" */
+}
+.l38-line {
+  fill: none; /* path 默认会填充闭合区域——折线必须显式关掉，易错点 */
+  stroke: #4f6df5;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.l38-crosshair {
+  stroke: #b6bdd1;
+  stroke-dasharray: 4 4;
+}
+.l38-dot {
+  fill: #4f6df5;
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+/* ── 环形图 ── */
+.l38-donut-wrap {
+  max-width: 420px; /* 环形图不需要全宽，限制容器让它和图例并排更紧凑 */
+}
+.l38-track {
+  stroke: #eef1f7;
+}
+.l38-slice {
+  cursor: pointer;
+  transition: stroke-width 0.2s ease; /* 悬停变粗的过渡 */
+}
+.l38-center {
+  font-size: 18px;
+  font-weight: 700;
+  fill: #1f2430;
+}
+.l38-center-sub {
+  font-size: 12px;
+  fill: #6b7280;
+}
+
+/* 图例：颜色点 + 名字 + 数值（百分比）。
+   【易错】App.css 的 .card li 是"flex + space-between"（给待办清单用的），
+   会把图例三项撑满整行——用更高优先级的选择器盖回 flex-start。 */
+.l38-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+.l38-figure .l38-legend li {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 2px 0;
+  border-bottom: none;
+}
+.l38-legend-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  margin-right: 8px;
+  vertical-align: -1px;
+}
+.l38-legend-num {
+  color: #6b7280;
+  margin-left: 6px;
+}
+
+/* ── 选型卡 / 步骤表 ── */
+.l38-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  font-size: 13px;
+}
+.l38-table th,
+.l38-table td {
+  border: 1px solid #dfe3ec;
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+.l38-table th {
+  background: #f6f8fc;
+}
+
+.l38-steps {
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+}
