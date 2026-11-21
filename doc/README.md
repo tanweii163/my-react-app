@@ -44,6 +44,11 @@
 | 28 | 实时数据与 useSyncExternalStore | [doc/lesson-28.md](lesson-28.md) | `/lesson/28` | `src/components/lesson28/` |
 | 29 | 调试方法论与 DevTools | [doc/lesson-29.md](lesson-29.md) | `/lesson/29` | `src/components/lesson29/` |
 | 30 | 结业实战：迷你监控台 | [doc/lesson-30.md](lesson-30.md) | `/lesson/30` | `src/components/lesson30/` |
+| 31 | Next.js 与服务端组件导论 | [doc/lesson-31.md](lesson-31.md) | `/lesson/31`（子项目 `next-app/` @ :3100） | `next-app/src/app/` |
+| 32 | 虚拟列表 | [doc/lesson-32.md](lesson-32.md) | `/lesson/32` | `src/components/lesson32/` |
+| 33 | i18n 国际化 | [doc/lesson-33.md](lesson-33.md) | `/lesson/33` | `src/components/lesson33/` |
+| 34 | Tailwind CSS | [doc/lesson-34.md](lesson-34.md) | `/lesson/34` | `src/components/lesson34/` |
+| 35 | PWA 与离线体验 | [doc/lesson-35.md](lesson-35.md) | `/lesson/35` | `src/components/lesson35/` |
 
 ## 课程主线（一条致学习的暗线）
 
@@ -82,6 +87,12 @@ UI = f(state)                    ← 第 1 课：一切的开始
   + 实时世界                     ← 第 28 课：useSyncExternalStore
   + 找到并消灭 bug               ← 第 29 课：调试方法论
   = 结业                         ← 第 30 课：迷你监控台
+  ──────────── 新领域篇 ────────────
+  + 服务端渲染世界               ← 第 31 课：Next.js / RSC
+  + 10 万行也不卡                ← 第 32 课：虚拟列表
+  + 世界语言                     ← 第 33 课：i18n
+  + 另一种样式哲学               ← 第 34 课：Tailwind CSS
+  + 断网也能用                   ← 第 35 课：PWA
 ```
 
 ## 项目结构约定
