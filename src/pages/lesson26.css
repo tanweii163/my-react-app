@@ -1,0 +1,282 @@
+/* 第 26 课 · 可访问性样式
+   约定：全部类名 l26- 前缀，不与 App.css / index.css 的通用类冲突；
+   卡片骨架复用 App.css 的 .card / .row / .hint，这里只写本课特有的部分。
+   本文件自己也在示范 a11y：焦点永远看得见（:focus-visible）、
+   动效尊重系统"减少动态效果"设置。 */
+
+/* —— 触发按钮：统一的本课按钮脸 —— */
+.l26-btn {
+  padding: 6px 14px;
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.l26-btn:hover {
+  background: #eef1f7;
+}
+
+.l26-btn-ghost {
+  border-color: transparent;
+  color: #4b5563;
+}
+
+/* ★ 焦点可见性：a11y 铁律"永不裸奔"——可以用 :focus-visible 定制焦点环，
+   但绝不允许 outline: none 又不给替代品。focus-visible 只在键盘聚焦时出现，
+   鼠标点击不画环（两全：鼠标用户不被圈打扰，键盘用户永远看得见自己在哪）。 */
+.l26-btn:focus-visible,
+.l26-tab:focus-visible,
+.l26-dialog-close:focus-visible,
+.l26-tabpanel:focus-visible {
+  outline: 3px solid #6366f1;
+  outline-offset: 2px;
+}
+
+/* 键盘按键提示的小方块（页面 hint 里的 <kbd>） */
+kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 1px 6px;
+  border: 1px solid #cbd5e1;
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: #f8fafc;
+  font-family: inherit;
+  font-size: 0.85em;
+  text-align: center;
+}
+
+/* —— 铁律卡 —— */
+.l26-rules {
+  margin: 8px 0;
+  padding-left: 20px;
+  color: #374151;
+  line-height: 1.9;
+}
+
+/* 行内代码（<button>、<div onClick> 这类）禁止在中间断行——
+   被劈成两半的代码既难读又容易被误读成两个标签 */
+.l26-rules code {
+  white-space: nowrap;
+}
+
+/* —— 无障碍标签页 —— */
+.l26-tablist {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  border-bottom: 2px solid #dfe3ec;
+}
+
+.l26-tab {
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  background: transparent;
+  cursor: pointer;
+  color: #4b5563;
+}
+
+.l26-tab:hover {
+  background: #eef1f7;
+}
+
+/* 激活态：白底 + 上边框把"当前页签"顶出来，视觉与 aria-selected 同步 */
+.l26-tab-active {
+  border-color: #dfe3ec;
+  background: #fff;
+  color: #1f2430;
+  font-weight: 600;
+  /* 只动颜色/边框这类廉价属性（第 23 课铁律：transform/opacity 之外少动），
+     且尊重系统"减少动态效果"设置——前庭功能障碍用户请求关闭动画时照办 */
+  transition: background 0.15s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .l26-tab-active,
+  .l26-live {
+    transition: none;
+  }
+}
+
+.l26-tabpanel {
+  padding: 12px 4px;
+  color: #374151;
+  line-height: 1.8;
+}
+
+/* —— 无障碍对话框 —— */
+/* 遮罩：盖满全屏的半透明黑。注意它是真实可点击的区域（点它 = 关闭） */
+.l26-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.l26-dialog {
+  width: min(520px, calc(100vw - 32px));
+  max-height: 80vh;
+  overflow: auto;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.35);
+}
+
+.l26-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.l26-dialog-head h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+/* 图标按钮（✕）：够大的点击热区（44px 是 WCAG 的舒适下限）——
+   手抖用户、运动障碍用户都受益 */
+.l26-dialog-close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.l26-dialog-close:hover {
+  background: #eef1f7;
+}
+
+.l26-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 12px 0;
+}
+
+.l26-form-row label {
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.l26-form-row input {
+  padding: 8px 10px;
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+}
+
+/* —— aria-live 播报区 —— */
+/* 两个 live 区域永远渲染在 DOM 里（铁律①），这里给它们"通知条"的长相：
+   固定占位高度感（min-height），消息到达前也不是空白塌陷的 */
+.l26-live {
+  min-height: 64px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+.l26-live p {
+  margin: 4px 0 0;
+  font-weight: 600;
+}
+
+/* polite：蓝色信息条——常规更新的视觉语言 */
+.l26-live-polite {
+  border-left: 4px solid #6366f1;
+  background: #eef2ff;
+}
+
+/* assertive：红色警报条——打断插播配最高警示级配色 */
+.l26-live-urgent {
+  border-left: 4px solid #dc2626;
+  background: #fef2f2;
+}
+
+/* —— 三重编码演示板 —— */
+.l26-board-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.l26-board {
+  padding: 12px 14px;
+  border: 1px solid #dfe3ec;
+  border-radius: 10px;
+}
+
+.l26-board h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.l26-server-list {
+  margin: 0;
+}
+
+.l26-server {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px dashed #e5e7eb;
+  font-size: 0.92rem;
+}
+
+.l26-server:last-child {
+  border-bottom: none;
+}
+
+/* 反例：只有颜色的状态点——无文字、无形状差异、无语义 */
+.l26-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+.l26-dot-ok {
+  background: #16a34a;
+}
+
+.l26-dot-down {
+  background: #dc2626;
+}
+
+/* 正解：颜色 + 图标 + 文字的状态胶囊——三个通道同时说话 */
+.l26-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.l26-status-ok {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.l26-status-down {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+/* ★ 一行 CSS 把整个演示板变成黑白——色觉障碍用户看到的从来都是这一版。
+   filter: grayscale 不改变布局与文字，只抽掉颜色这一重编码，
+   正好让"图标 + 文字"补位的效果无处遁形。 */
+.l26-grayscale {
+  filter: grayscale(1);
+}

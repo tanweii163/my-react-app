@@ -1,0 +1,72 @@
+/* 第 28 课样式 · 全部 l28- 前缀（不污染全局） */
+
+/* 状态徽章：四种连接状态共用形状，颜色表达语义 */
+.l28-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.l28-badge-connecting {
+  background: #fef3c7; /* 琥珀：握手进行中 */
+  color: #92400e;
+}
+
+.l28-badge-open {
+  background: #dcfce7; /* 绿：一切正常 */
+  color: #166534;
+}
+
+.l28-badge-reconnecting {
+  background: #ffedd5; /* 橙：故障但未放弃 */
+  color: #9a3412;
+}
+
+.l28-badge-closed {
+  background: #fee2e2; /* 红：彻底断开 */
+  color: #991b1b;
+}
+
+/* 行情列表：每行一个 symbol，大数字复用 App.css 的 .big-number */
+.l28-price-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+
+.l28-price-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.l28-symbol {
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #4b5563;
+}
+
+/* 实时日志：等宽字体 + 时间戳右对齐，一眼分清"何时/何事" */
+.l28-log {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+}
+
+.l28-log-line {
+  display: flex;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px dashed #eef1f7;
+}
+
+.l28-log-ts {
+  color: #9ca3af;
+  flex-shrink: 0;
+}

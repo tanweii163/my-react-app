@@ -156,6 +156,36 @@ const lessons = [
     desc: '毕业自检清单；课程总结；后续路线（Next.js/RSC/React Native）',
     files: ['src/pages/Lesson25.jsx', 'src/components/lesson25/'],
   },
+  {
+    path: '/lesson/26',
+    title: '第 26 课 · 可访问性 (a11y)',
+    desc: '语义化与 ARIA；键盘导航；focus 管理；aria-live',
+    files: ['src/pages/Lesson26.jsx', 'src/components/lesson26/'],
+  },
+  {
+    path: '/lesson/27',
+    title: '第 27 课 · 前端安全',
+    desc: 'XSS 与 dangerouslySetInnerHTML；URL 注入；依赖供应链；CSP 概念',
+    files: ['src/pages/Lesson27.jsx', 'src/components/lesson27/'],
+  },
+  {
+    path: '/lesson/28',
+    title: '第 28 课 · 实时数据与 useSyncExternalStore',
+    desc: '订阅模式；MockSocket 与重连状态机；外部 store 接入 React',
+    files: ['src/pages/Lesson28.jsx', 'src/components/lesson28/'],
+  },
+  {
+    path: '/lesson/29',
+    title: '第 29 课 · 调试方法论与 DevTools',
+    desc: 'Profiler 实操；bug 分类排查（突变/闭包/stale）；错误监控概念',
+    files: ['src/pages/Lesson29.jsx', 'src/components/lesson29/'],
+  },
+  {
+    path: '/lesson/30',
+    title: '第 30 课 · 结业实战：迷你监控台',
+    desc: '整合 26–29：实时数据流 + 无障碍控件 + 错误边界 + 调试思维',
+    files: ['src/pages/Lesson30.jsx', 'src/components/lesson30/'],
+  },
 ]
 
 function Home() {

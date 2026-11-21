@@ -1,0 +1,135 @@
+/* 第 27 课 · 前端安全样式
+   约定：全部类名 l27- 前缀，不与 App.css / index.css 冲突；
+   卡片骨架复用 App.css 的 .card，这里只写本页特有的部分。 */
+
+/* XSS 演示：原始文本展示区——等宽字体 + 边框，让它"像代码" */
+.l27-escape-box {
+  background: #f6f8fa;
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+  padding: 10px 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-size: 0.9rem;
+  min-height: 38px;
+}
+
+/* XSS 演示：插值渲染区——和上面同一个内容，视觉上强调"它只是文本" */
+.l27-render-box {
+  background: #f0fdf4;
+  border: 1px dashed #86efac;
+  border-radius: 8px;
+  padding: 10px 12px;
+  word-break: break-all;
+  color: #166534;
+}
+
+/* 危险演示区（sandbox 思路：红边框提醒"这里讲的是危险内容，但只是文本"） */
+.l27-payload-box {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.l27-payload-box pre {
+  background: #fff;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 8px 10px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 8px 0;
+}
+
+/* URL 校验结论徽章 */
+.l27-verdict {
+  display: inline-block;
+  padding: 2px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  margin-left: 8px;
+}
+
+.l27-ok {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.l27-bad {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+/* img 场景的"被拦截"占位块 */
+.l27-blocked-img {
+  width: 80px;
+  height: 80px;
+  border: 2px dashed #fca5a5;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+/* 信任边界手风琴卡片 */
+.l27-boundary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.l27-boundary {
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.l27-boundary-open {
+  border-color: #1f2430;
+}
+
+.l27-boundary-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #f6f8fa;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  text-align: left;
+}
+
+.l27-boundary-head:hover {
+  background: #eef1f7;
+}
+
+.l27-arrow {
+  margin-left: auto;
+  color: #6b7280;
+}
+
+.l27-boundary-body {
+  padding: 10px 14px;
+  border-top: 1px solid #dfe3ec;
+}
+
+.l27-boundary-body p {
+  margin: 6px 0;
+  color: #4b5563;
+}
+
+/* 本课收尾卡 */
+.l27-takeaway {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #3730a3;
+}

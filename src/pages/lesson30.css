@@ -1,0 +1,409 @@
+/* 第 30 课 · 结业实战：迷你监控台 样式
+   约定：全部类名 l30- 前缀，不与 App.css / index.css 的通用类（.card/.row/.hint/.big-number）冲突；
+   本页重点：状态条的状态色、三列自适应网格、日志/告警的严重度视觉层级、崩溃后的降级卡。
+   通用布局复用 App.css 的 .card 与 index.css 的 .hint，这里只写本课新东西。 */
+
+/* —— 顶部状态条 —— */
+.l30-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid #dfe3ec;
+  border-radius: 10px;
+}
+
+.l30-status-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-weight: 600;
+}
+
+/* 状态点：绿=通，黄=握手中，红闪=重连，灰=断开。
+   闪烁是"状态在动"的冗余编码——但色盲用户靠不了颜色，语义始终在文字里（26 课：颜色不作唯一信号） */
+.l30-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.l30-dot-open {
+  background: #16a34a;
+}
+
+.l30-dot-connecting {
+  background: #f59e0b;
+  animation: l30-blink 1s infinite;
+}
+
+.l30-dot-reconnecting {
+  background: #dc2626;
+  animation: l30-blink 1s infinite;
+}
+
+.l30-dot-closed {
+  background: #9ca3af;
+}
+
+@keyframes l30-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.l30-retry-meta {
+  color: #b91c1c;
+  font-weight: 400;
+  font-size: 0.9em;
+}
+
+.l30-offline-flag {
+  color: #b45309;
+  font-weight: 400;
+  font-size: 0.9em;
+}
+
+.l30-status-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.l30-drop-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 0.95em;
+}
+
+/* —— widget 网格：三块自适应换行，窄屏自动叠成一列 —— */
+.l30-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* .card 自带 margin-top: 16px，在 grid 里交给 gap 管理，归零防止双倍间距 */
+.l30-widget {
+  margin-top: 0;
+}
+
+.l30-widget-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.l30-widget-head h2 {
+  margin: 0;
+}
+
+/* —— 模拟崩溃按钮：低调但一眼可辨（危险色描边款） —— */
+.l30-crash-btn {
+  padding: 4px 10px;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.85em;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.l30-crash-btn:hover {
+  background: #fee2e2;
+}
+
+/* —— 价格区 —— */
+.l30-price-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.l30-price-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.l30-symbol {
+  font-weight: 600;
+  color: #4b5563;
+  font-size: 0.9em;
+}
+
+/* 涨跌颜色只作用于数字——文字语义（↑/↓/aria-label）始终在场，颜色只是第二信号 */
+.l30-up .big-number {
+  color: #15803d;
+}
+
+.l30-down .big-number {
+  color: #b91c1c;
+}
+
+.l30-price-meta {
+  font-size: 0.8em;
+  color: #6b7280;
+}
+
+/* —— 日志流：深色终端风 —— */
+.l30-log-list {
+  max-height: 220px;
+  overflow: auto;
+  padding: 8px 10px;
+  background: #0f172a;
+  border-radius: 8px;
+}
+
+.l30-log-list ul {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.l30-log-empty {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.85em;
+}
+
+.l30-log {
+  display: flex;
+  gap: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.l30-log-time {
+  flex-shrink: 0;
+  color: #94a3b8;
+}
+
+.l30-log-level {
+  flex-shrink: 0;
+  width: 2.5em;
+}
+
+/* 级别用颜色+文字双重编码：级别列永远是中文词，颜色只是加速扫读 */
+.l30-log-info .l30-log-level {
+  color: #7dd3fc;
+}
+
+.l30-log-warn .l30-log-level {
+  color: #fbbf24;
+}
+
+.l30-log-error .l30-log-level {
+  color: #f87171;
+}
+
+.l30-log-text {
+  color: #e2e8f0;
+  word-break: break-all;
+}
+
+/* —— 告警列表：左边条颜色表达严重度 —— */
+.l30-alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.l30-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-left-width: 4px;
+  border-radius: 8px;
+}
+
+.l30-alert-critical {
+  border-left-color: #dc2626;
+  background: #fef2f2;
+}
+
+.l30-alert-warning {
+  border-left-color: #d97706;
+  background: #fffbeb;
+}
+
+.l30-alert-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.l30-alert-sev {
+  font-weight: 700;
+  font-size: 0.85em;
+  flex-shrink: 0;
+}
+
+.l30-alert-critical .l30-alert-sev {
+  color: #b91c1c;
+}
+
+.l30-alert-warning .l30-alert-sev {
+  color: #b45309;
+}
+
+.l30-alert-msg {
+  color: #1f2937;
+}
+
+.l30-alert-time {
+  font-size: 0.8em;
+  color: #6b7280;
+}
+
+.l30-ack-btn {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border: 1px solid #1f2430;
+  border-radius: 6px;
+  background: #1f2430;
+  color: #fff;
+  cursor: pointer;
+}
+
+.l30-ack-btn:hover {
+  background: #374151;
+}
+
+/* 已确认：整条淡出视觉焦点，但记录保留 */
+.l30-alert-acked {
+  opacity: 0.55;
+}
+
+.l30-ack-done {
+  flex-shrink: 0;
+  color: #15803d;
+  font-size: 0.9em;
+}
+
+/* —— 崩溃降级卡：红描边 + 等宽错误信息 —— */
+.l30-fallback {
+  margin-top: 0;
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.l30-fallback-err {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+  color: #b91c1c;
+  word-break: break-all;
+}
+
+.l30-reset-btn {
+  padding: 6px 14px;
+  border: 1px solid #1f2430;
+  border-radius: 6px;
+  background: #1f2430;
+  color: #fff;
+  cursor: pointer;
+}
+
+.l30-reset-btn:hover {
+  background: #374151;
+}
+
+/* —— 键盘可达性说明 —— */
+.l30-keyboard-note ul {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 20px;
+  list-style: disc;
+}
+
+/* —— 回扣表卡片网格 —— */
+.l30-recap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.l30-recap-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.l30-recap-lesson {
+  font-weight: 600;
+  font-size: 0.8em;
+  color: #1d4ed8;
+}
+
+.l30-recap-feature {
+  font-size: 0.95em;
+}
+
+.l30-recap-concept {
+  color: #4b5563;
+  font-size: 0.85em;
+}
+
+.l30-recap-file {
+  color: #6b7280;
+  font-size: 0.75em;
+  word-break: break-all;
+}
+
+/* —— 结业致辞块：呼应第 25 课毕业致辞的引言样式 —— */
+.l30-address {
+  margin: 12px 0;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-left: 4px solid #1f2430;
+  border-radius: 0 8px 8px 0;
+}
+
+.l30-address p {
+  margin: 6px 0 0;
+  color: #374151;
+}
+
+/* 第 23 课立的规矩，这里照办：系统开启"减少动态效果"时掐掉闪烁动画，
+   状态信息完全由文字与颜色承载，不受影响 */
+@media (prefers-reduced-motion: reduce) {
+  .l30-dot-connecting,
+  .l30-dot-reconnecting {
+    animation: none;
+  }
+}
