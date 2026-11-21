@@ -1,0 +1,14 @@
+/* 第 31 课 · globals.css —— 教学最小样式
+ *
+ * create-next-app 默认带了主题变量和暗色模式，这里精简掉，
+ * 只保留布局需要的几条规则——教学项目越少"魔法"越好。
+ */
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: #fff;
+  color: #111;
+}

@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Next.js 子项目（第 31 课）
+next-app/.next
+next-app/out

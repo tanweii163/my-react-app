@@ -186,6 +186,36 @@ const lessons = [
     desc: '整合 26–29：实时数据流 + 无障碍控件 + 错误边界 + 调试思维',
     files: ['src/pages/Lesson30.jsx', 'src/components/lesson30/'],
   },
+  {
+    path: '/lesson/31',
+    title: '第 31 课 · Next.js 与服务端组件导论',
+    desc: '独立子项目 next-app/；App Router；RSC 与 Client 组件；与 SPA 对比',
+    files: ['next-app/', 'src/pages/Lesson31.jsx'],
+  },
+  {
+    path: '/lesson/32',
+    title: '第 32 课 · 虚拟列表',
+    desc: '@tanstack/react-virtual；10 万行流畅滚动；windowing 原理',
+    files: ['src/pages/Lesson32.jsx', 'src/components/lesson32/'],
+  },
+  {
+    path: '/lesson/33',
+    title: '第 33 课 · i18n 国际化',
+    desc: 'react-i18next；翻译与命名空间；切换语言；插值与复数',
+    files: ['src/pages/Lesson33.jsx', 'src/components/lesson33/'],
+  },
+  {
+    path: '/lesson/34',
+    title: '第 34 课 · Tailwind CSS',
+    desc: 'utility-first；与语义化 class 方案的取舍；粒度导入避免 preflight 污染',
+    files: ['src/pages/Lesson34.jsx', 'src/components/lesson34/'],
+  },
+  {
+    path: '/lesson/35',
+    title: '第 35 课 · PWA 与离线体验',
+    desc: 'manifest；手写 Service Worker；缓存策略；build+preview 验证',
+    files: ['src/pages/Lesson35.jsx', 'src/components/lesson35/'],
+  },
 ]
 
 function Home() {

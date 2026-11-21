@@ -1,0 +1,213 @@
+/* 第 33 课 · i18n 国际化 样式
+   约定：全部类名 l33- 前缀，不与 App.css / index.css 的通用类（.card/.row/.hint/.big-number）冲突；
+   本页重点：语言切换按钮组的高亮态、菜单两列网格、订单栏、选型卡左右对照。
+   布局骨架复用 App.css 的 .card 与 index.css 的 .hint，这里只写本课新东西。 */
+
+/* —— 语言切换按钮组 —— */
+.l33-head-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.l33-head-row p {
+  margin: 0;
+  flex: 1 1 420px;
+}
+
+.l33-switcher {
+  display: inline-flex;
+  gap: 8px;
+  margin-left: 12px;
+  vertical-align: middle;
+}
+
+.l33-lang-btn {
+  padding: 6px 16px;
+  border: 1px solid #dfe3ec;
+  border-radius: 999px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+
+/* 当前语言高亮：背景反色。视觉高亮只是冗余编码，语义在 aria-pressed 里（26 课：颜色不作唯一信号） */
+.l33-lang-btn-active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* —— 顾客名字输入 + 欢迎语 —— */
+.l33-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 8px 0 12px;
+}
+
+.l33-name-row input {
+  padding: 6px 10px;
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.l33-welcome {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* —— 菜单两列自适应网格 —— */
+.l33-menu-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.l33-menu-item {
+  border: 1px solid #e5e9f2;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.l33-menu-item strong {
+  font-size: 1.05rem;
+}
+
+.l33-price {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.l33-desc {
+  margin: 0;
+  color: #4b5563;
+  font-size: 0.92rem;
+}
+
+.l33-stock {
+  margin: 0;
+  color: #dc2626;
+  font-size: 0.92rem;
+}
+
+.l33-menu-item button {
+  align-self: flex-start;
+  padding: 6px 14px;
+  border: 1px solid #2563eb;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #2563eb;
+  cursor: pointer;
+  font: inherit;
+}
+
+/* —— 订单栏 —— */
+.l33-order-bar {
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid #dfe3ec;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.l33-order-bar h3 {
+  margin: 0;
+}
+
+.l33-order-bar p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.l33-order-bar button {
+  margin-left: auto;
+  padding: 6px 14px;
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+
+.l33-order-bar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* —— Fallback 演示区 —— */
+.l33-fallback h3 {
+  margin-bottom: 6px;
+}
+
+.l33-fallback button {
+  padding: 6px 14px;
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-family: ui-monospace, monospace;
+}
+
+.l33-fallback-result {
+  margin: 8px 0;
+}
+
+.l33-fallback-result code {
+  padding: 2px 8px;
+  background: #fef3c7;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* —— 选型卡：左右对照两列 —— */
+.l33-decision-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.l33-decision-col {
+  border-radius: 10px;
+  padding: 12px 16px;
+  border: 1px solid #e5e9f2;
+}
+
+.l33-decision-col h3 {
+  margin: 0 0 8px;
+}
+
+.l33-decision-col ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #374151;
+}
+
+.l33-decision-col li {
+  margin: 6px 0;
+}
+
+/* 手写列：中性灰；上库列：蓝边——对照关系一眼可辨（颜色仍只是冗余编码，标题语义已写明） */
+.l33-decision-handwritten {
+  background: #f8fafc;
+}
+
+.l33-decision-library {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}

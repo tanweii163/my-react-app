@@ -1,0 +1,63 @@
+/* 第 35 课 · 页面样式（l35- 前缀，避免与其他课冲突） */
+
+/* 在线/离线徽章 */
+.l35-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.l35-badge-online {
+  background: #e7f7ee;
+  color: #0a7d3e;
+  border-color: #bfe9d0;
+}
+
+.l35-badge-offline {
+  background: #fdecec;
+  color: #b42318;
+  border-color: #f5c2c0;
+}
+
+/* 更新提示条 */
+.l35-update {
+  border-color: #f0b429;
+  background: #fff8e6;
+}
+
+/* 缓存策略对照表 */
+.l35-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+.l35-table th,
+.l35-table td {
+  border: 1px solid #dfe3ec;
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.l35-table th {
+  background: #eef1f7;
+}
+
+/* 验证步骤列表 */
+.l35-steps li {
+  margin-top: 6px;
+}
+
+/* 生命周期三阶段 */
+.l35-phase {
+  border-left: 4px solid #863bff;
+  padding-left: 12px;
+  margin-top: 10px;
+}
+
+.l35-phase h4 {
+  margin: 0 0 4px;
+}

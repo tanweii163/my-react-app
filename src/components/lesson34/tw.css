@@ -1,0 +1,29 @@
+/*
+ * 第 34 课 · tw.css —— Tailwind v4 的"粒度导入"（本课最重要的一处配置）
+ *
+ * 本文件教什么：
+ *   Tailwind v4 默认只有一个入口 `@import "tailwindcss"`，它等于三层的总和：
+ *     theme（设计令牌变量）+ base（preflight 全局重置）+ utilities（工具类）。
+ *   我们故意**不导 base 层**，只拿 theme + utilities：
+ *
+ * 为什么禁用 preflight（base 层）？—— 与 preflight 的恩怨：
+ *   1. preflight 会重置所有元素的默认样式（去 margin、去 border、按钮变透明背景……）；
+ *   2. 本项目的 CSS 一旦被浏览器加载，就**不随路由卸载**——你打开第 34 课，
+ *      这些样式就永远留在页面里；再访问第 1–30 课时，preflight 的全局重置会把
+ *      App.css 精心写的 .card / .top-nav 等语义样式搅乱（比如按钮背景被清空、
+ *      h2 的 margin 被抹掉），等于一颗"样式炸弹"污染其他 30 课；
+ *   3. theme + utilities 都是"按需生效"的：theme 只定义 CSS 变量，utilities 只命中
+ *      我们 JSX 里真实写出的类名——对没写 Tailwind 类的页面零影响，安全。
+ *
+ * 铁律：@layer 声明必须在最前，且顺序固定 theme → base → components → utilities。
+ *
+ * 实战坑（本项目实测踩到）：utilities 若也放进 layer(utilities)，会被 index.css
+ * 里**未分层**的全局 `button { background: #eef1f7 }` 击败——层叠规则是
+ * "未分层样式永远赢过分层样式"，与导入顺序无关。所以 utilities.css 必须
+ * **不带 layer() 导入**（保持未分层、且在 index.css 之后加载 → 级联获胜），
+ * theme（只声明 CSS 变量、无冲突面）仍可安全分层。声明里保留 utilities 层名
+ * 仅为对齐 Tailwind 四层约定，实际没有样式落进那一层。
+ */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css";

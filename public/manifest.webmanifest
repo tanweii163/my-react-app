@@ -1,0 +1,17 @@
+{
+  "name": "React 学习课程 · PWA 演示",
+  "short_name": "React课",
+  "description": "第 35 课教学示例：手写 Service Worker 与离线体验",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#863bff",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
