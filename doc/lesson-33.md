@@ -1,6 +1,8 @@
 # 第 33 课 · i18n 国际化
 
-第一句 `console.log('Hello, world!')` 写完的那天，"国际化"还离你十万八千里；等你做出第一个真正有人用的页面，就会发现问题来了：文案散落在几百个 JSX 角落里，产品说"加个英文版"。本课学 i18next + react-i18next：把所有文案收进资源字典，用 `t()` 查表渲染，语言切换变成一次 `changeLanguage()`——整页文本实时换词，复数、插值、fallback、命名空间全部交给库。打开 http://localhost:5173/lesson/33 ，点右上角「中文 / English」，观察每一处文本（标题、菜单、按钮、选型卡）同时变化；再点一次「调用 t("oops.notHere")」，看控制台的 missingKey 警告。
+第一句 `console.log('Hello, world!')` 写完的那天，"国际化"还离你十万八千里。等你做出第一个真正有人用的页面，问题就来了：文案散落在几百个 JSX 角落里，产品说"加个英文版"。本课学 i18next + react-i18next——把所有文案收进资源字典，用 `t()` 查表渲染，语言切换变成一次 `changeLanguage()`。整页文本实时换词，复数、插值、fallback、命名空间全部交给库。
+
+打开 http://localhost:5173/lesson/33 ，点右上角「中文 / English」，观察每一处文本（标题、菜单、按钮、选型卡）同时变化。再点一次「调用 t("oops.notHere")」，看控制台的 missingKey 警告。
 
 ## 学习目标
 
@@ -24,16 +26,31 @@
 
 ### key 组织策略：按功能命名空间，不按语言散养
 
-资源字典是三层结构：**语言 → 命名空间 → key**（`resources.zh.menu.cups_other`）。真正要做设计决策的是后两层：
+> **一句话记住：** 字典三层是语言→命名空间→key；key 用英文描述"这是什么"，命名空间按功能拆。
 
-- **按"功能"拆命名空间**：本课拆 `common`（页面骨架、切换器、选型卡）和 `menu`（咖啡菜单）。真实项目接 `i18next-http-backend` 时，ns 就是**懒加载的下载单位**——进菜单页再拉 `menu` 翻译包，首屏不用背全站文案。按"页面"拆也可以，但功能拆出的包能被多个页面复用（订单页和菜单页共用 menu 里的条目），粒度更合理；
+先想清楚一个问题：几百条文案，放一个地方还是分开放？答案藏在字典的三层结构里：**语言 → 命名空间 → key**（`resources.zh.menu.cups_other`）。真正要做设计决策的是后两层：
+
+- **按"功能"拆命名空间**（namespace，文案的分组文件夹）：本课拆 `common`（页面骨架、切换器、选型卡）和 `menu`（咖啡菜单）。真实项目接 `i18next-http-backend` 时，ns 就是**懒加载的下载单位**——进菜单页再拉 `menu` 翻译包，首屏不用背全站文案。按"页面"拆也可以，但功能拆出的包能被多个页面复用（订单页和菜单页共用 menu 里的条目），粒度更合理；
 - **key 命名**：camelCase + 层级（`espresso.name`），一眼看出归属。两条铁律：**永远不要拿中文当 key**（改文案 = 全局改代码，翻译人员也无法定位），**key 描述"这是什么"而不是"显示成什么"**（`menuTitle` 好，`menuTitle2` 坏）；
-- **插值占位** `{{name}}` 在各语言的句子里可以换位置（语序不同），翻译时按目标语序安排占位符即可；
-- 组件里用 `useTranslation(['menu', 'common'])` 登记用到的 ns，`t()` 默认查第一个，跨 ns 用显式前缀 `t('common:menuTitle')`——**显式前缀是推荐写法**：key 归属一眼可见，搬组件不会因 defaultNS 变化而断。
+- **插值占位**（interpolation，文案里留 `{{name}}` 空位运行时填词）`{{name}}` 在各语言的句子里可以换位置（语序不同），翻译时按目标语序安排占位符即可；
+- 组件里用 `useTranslation(['menu', 'common'])` 登记用到的 ns，`t()` 默认查第一个。跨 ns 用显式前缀 `t('common:menuTitle')`——**显式前缀是推荐写法**：key 归属一眼可见，搬组件不会因 defaultNS 变化而断。
+
+**图：t(key) 的查找与 fallback 流程**
+
+```mermaid
+flowchart TD
+    A["调用 t(key)"] --> B["查当前语言字典"]
+    B -->|"命中"| C["返回对应文案"]
+    B -->|"缺 key"| D["回退 fallbackLng 字典"]
+    D -->|"命中"| C
+    D -->|"仍缺"| E["返回键名 + 控制台警告"]
+```
 
 ### 复数后缀规律：i18next JSON v4 格式
 
-`t(key, { count })` 里 `count` 是魔法参数：它一出现，i18next 就用 **`Intl.PluralRules(当前语言)`** 给 key 拼复数后缀再查表。所以字典里的 key 不是写死的，是"key + 语言专属后缀"：
+> **一句话记住：** 传了 count，i18next 就按当前语言的复数类别自动拼后缀查表；`_one` 只属于 1，zh 永远 `_other`。
+
+为什么字典里会出现 `cups_one`、`cups_other` 这样的 key？因为 `t(key, { count })` 里 `count` 是魔法参数：它一出现，i18next 就用 **`Intl.PluralRules(当前语言)`** 给 key 拼复数后缀再查表。所以字典里的 key 不是写死的，是"key + 语言专属后缀"：
 
 | 语言 | Intl.PluralRules 类别 | 字典需要的后缀 |
 |---|---|---|
@@ -48,7 +65,9 @@
 
 ### changeLanguage 的重渲染机制：又是观察者
 
-整页文本"实时变化"的机关，把链路展开只有四步：
+> **一句话记住：** i18next 就是组件外的 store，换语言广播 languageChanged，订阅过 useTranslation 的组件各自重渲染。
+
+你可能会问：为什么换语言不用刷新页面？整页文本"实时变化"的机关，把链路展开只有四步：
 
 ```
 i18n.changeLanguage('en')
@@ -57,11 +76,31 @@ i18n.changeLanguage('en')
       → 各组件 setState 重渲染，t() 下一次调用从 en 字典取词
 ```
 
-没有全局刷新，没有 `location.reload()`——和第 28 课的外部 store 是同一套观察者思想：**i18next 就是活在组件外的 store，react-i18next 就是那层订阅胶水**（`useTranslation` 挂载时订阅、卸载时退订，第 2 课 cleanup 的又一兑现）。这也解释了两个现象：没经过 `useTranslation` 的字符串切换后纹丝不动（它没订阅）；`changeLanguage` 返回 Promise（真实项目从后端拉翻译包要走网络），但订阅机制保证包一到，所有组件立刻跟上。
+**图：changeLanguage 触发重渲染的订阅链路**
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant I as i18next 实例
+    participant C as useTranslation 组件
+    U->>I: changeLanguage("en")
+    I->>I: 换掉内存字典
+    I-->>C: 广播 languageChanged 事件
+    C->>C: setState 重渲染
+    C->>I: t() 从 en 字典取词
+    I-->>C: 返回新文案
+```
+
+没有全局刷新，没有 `location.reload()`。**i18next 就是活在组件外的 store，react-i18next 就是那层订阅胶水**——和第 28 课的外部 store 是同一套观察者思想。`useTranslation` 挂载时订阅、卸载时退订，是第 2 课 cleanup 的又一兑现。这也解释了两个现象：
+
+- 没经过 `useTranslation` 的字符串切换后纹丝不动——它没订阅；
+- `changeLanguage` 返回 Promise（真实项目从后端拉翻译包要走网络），但订阅机制保证包一到，所有组件立刻跟上。
 
 ### 检测顺序与持久化：谁读、谁写
 
-没有 `i18next-browser-languagedetector` 插件时，检测就是手写三行的优先级链：
+> **一句话记住：** 选择时写入 localStorage，初始化时按"localStorage > navigator > 默认"读取，读出值要过白名单。
+
+第一次打开页面，用户还没选过语言，默认给谁？没有 `i18next-browser-languagedetector`（浏览器语言探测插件）时，检测就是手写三行的优先级链：
 
 ```
 localStorage 里用户显式选过的（最优先，尊重人的意志）
@@ -69,15 +108,39 @@ localStorage 里用户显式选过的（最优先，尊重人的意志）
     → 默认 'zh'（项目面向中文读者，兜底而不是报错）
 ```
 
-持久化的分工必须分清：**写在使用时**（`LanguageSwitcher` 点击时 `setItem`），**读在初始化时**（`detectLanguage()` 只在 `init` 时跑一次）。i18next 本身不持久化语言——`changeLanguage` 换完内存就结束，刷新后回到检测链，localStorage 就是那个"上一次的选择"。另外 localStorage 可能被手改/残留成任意字符串，读出来要过白名单校验，垃圾值直接当语言传给 `init` 不报错，但整页 `t()` 全部落空走 fallback。
+持久化的分工必须分清：**写在使用时**（`LanguageSwitcher` 点击时 `setItem`），**读在初始化时**（`detectLanguage()` 只在 `init` 时跑一次）。i18next 本身不持久化语言——`changeLanguage` 换完内存就结束，刷新后回到检测链，localStorage 就是那个"上一次的选择"。
+
+另外 localStorage 可能被手改/残留成任意字符串，读出来要过白名单校验。垃圾值直接当语言传给 `init` 不报错，但整页 `t()` 全部落空走 fallback。
+
+**图：语言检测优先级链与持久化分工**
+
+```mermaid
+flowchart TD
+    S["init 初始化时检测"] --> LS{"localStorage 有白名单值?"}
+    LS -->|"有"| U["采用用户上次选择"]
+    LS -->|"无"| N{"navigator.language 匹配?"}
+    N -->|"是"| M["归并采用 zh / en"]
+    N -->|"否"| D["兜底默认 zh"]
+    U -.->|"写入时机: 点击切换时 setItem"| LS
+```
 
 ### 硬编码字符串是技术债
 
-"国际化欠债"最典型的形态：第一版全页硬编码中文，某天要做英文版——此时文案已经散在几百个 JSX 角落，和逻辑缠在一起，抽字典的改动量等于重写一遍页面。所以本课的铁律是**从第一行 JSX 开始，界面文案就不准硬编码**：所有文本一律过 `t()`，哪怕字典里暂时只有一种语言。判断"这个字符串该不该进字典"只有一条标准：它是不是"要跟着界面语言变"的文案——语言名自己（「中文 / English」按钮）反而是例外，行业惯例是用目标语言标注自己，不翻译。技术债的可怕之处在于它免费膨胀：今天少抽一个字符串没成本，一年后就是"加英文版"这个需求从两周变成两个月的差额。
+> **一句话记住：** 从第一行 JSX 起，界面文案就不准硬编码，一律过 t()，哪怕暂时只有一种语言。
+
+"国际化欠债"最典型的形态：第一版全页硬编码中文，某天要做英文版。此时文案已经散在几百个 JSX 角落，和逻辑缠在一起，抽字典的改动量等于重写一遍页面。
+
+所以本课的铁律是：**从第一行 JSX 开始，界面文案就不准硬编码**。所有文本一律过 `t()`，哪怕字典里暂时只有一种语言。
+
+判断"这个字符串该不该进字典"只有一条标准：它是不是"要跟着界面语言变"的文案。语言名自己（「中文 / English」按钮）反而是例外——行业惯例是用目标语言标注自己，不翻译。
+
+技术债的可怕之处在于它免费膨胀：今天少抽一个字符串没成本，一年后就是"加英文版"这个需求从两周变成两个月的差额。
 
 ### 选型：手写 Context 字典 vs i18next
 
-第 6 课的方案（一个 Context 存 `{ zh: {...}, en: {...} }`，切语言就是换对象）并没有过时，分水岭在文案"活"起来之后：
+> **一句话记住：** 手写赢在零依赖；文案"活"起来之后（复数、插值、懒加载、协作），就该上 i18next。
+
+第 6 课的方案（一个 Context 存 `{ zh: {...}, en: {...} }`，切语言就是换对象）并没有过时。分水岭在文案"活"起来之后：
 
 | 场景 | 手写字典（第 6 课） | i18next（本课） |
 |---|---|---|
@@ -93,19 +156,38 @@ localStorage 里用户显式选过的（最优先，尊重人的意志）
 
 ### `src/components/lesson33/i18n.js` —— 实例与字典
 
-用 `i18next.createInstance()` 而不是默认单例：默认实例全局共享，微前端/多应用同页时会互相覆盖 init 配置。`.use(initReactI18next)` 把实例接进 react-i18next 的注入通道，之后任何 `useTranslation()` 找到的都是这同一个实例。两个 init 选项值得停下来读：`interpolation: { escapeValue: false }`（React 对 `{}` 文本已做 XSS 转义，第 27 课，i18next 不必重复转义）和 `react: { useSuspense: false }`（内联资源同步就绪，关掉 Suspense 免掉初始化竞态；真实项目接后端翻译包时要么配 `<Suspense>` 要么读 `ready` 标志）。
+用 `i18next.createInstance()` 而不是默认单例。默认实例全局共享，微前端/多应用同页时会互相覆盖 init 配置。
+
+`.use(initReactI18next)` 把实例接进 react-i18next 的注入通道。之后任何 `useTranslation()` 找到的都是这同一个实例。
+
+两个 init 选项值得停下来读：
+
+- `interpolation: { escapeValue: false }`——React 对 `{}` 文本已做 XSS 转义（第 27 课），i18next 不必重复转义；
+- `react: { useSuspense: false }`——内联资源同步就绪，关掉 Suspense 免掉初始化竞态。真实项目接后端翻译包时，要么配 `<Suspense>` 要么读 `ready` 标志。
 
 ### `src/components/lesson33/LanguageSwitcher.jsx` —— 切换器
 
-当前语言高亮用 `aria-pressed`（第 26 课 toggle button 语义），不用 `disabled`（会把能选的选项踢出 Tab 序）。两个副作用都在点击/语言变化时做：写 localStorage（持久化）、同步 `<html lang>`（读屏器按 lang 选发音词典——语言换了，页面语义也要换；放 effect 里因为改 document 是渲染外的世界）。
+当前语言高亮用 `aria-pressed`（第 26 课 toggle button 语义），不用 `disabled`——后者会把能选的选项踢出 Tab 序。
+
+两个副作用都在点击/语言变化时做：写 localStorage（持久化）、同步 `<html lang>`。读屏器按 lang 选发音词典，语言换了，页面语义也要换。放 effect 里是因为改 document 是渲染外的世界。
 
 ### `src/components/lesson33/TranslatedMenu.jsx` —— 菜单
 
-三种 `t()` 集中在一份 JSX 里：`t('add')` 纯查表；`t('welcome', { name })` 插值（插值原料还可以是另一个 `t()` 的结果——`{{origin}}` 填 `t('espresso.origin')`，嵌套翻译是真实项目每天都在用的组合拳）；`t('cups', { count: total })` 复数。库存行 `t('stock', { count: STOCK - order[id], ... })` 是最好的复数观察点：en 下把浓缩咖啡点到剩 1，文案从 servings 变 serving——**复数在数量变化和语言切换时都会实时重算**。fallback 演示按钮调 `t('oops.notHere')`：返回键名本身、控制台出 missingKey 日志。一个版本细节：**i18next v27 起 missingKey 走 `logger.log`，而 log/warn 两级是 debugOnly——不开 `debug: true` 就完全静默**（本课 init 已开，生产项目靠 `missingKeyHandler` 上报而不是开 debug）。
+三种 `t()` 集中在一份 JSX 里：
+
+- `t('add')` 纯查表；
+- `t('welcome', { name })` 插值——插值原料还可以是另一个 `t()` 的结果，`{{origin}}` 填 `t('espresso.origin')`，嵌套翻译是真实项目每天都在用的组合拳；
+- `t('cups', { count: total })` 复数。
+
+库存行 `t('stock', { count: STOCK - order[id], ... })` 是最好的复数观察点：en 下把浓缩咖啡点到剩 1，文案从 servings 变 serving——**复数在数量变化和语言切换时都会实时重算**。
+
+fallback 演示按钮调 `t('oops.notHere')`：返回键名本身、控制台出 missingKey 日志。
+
+一个版本细节：**i18next v27 起 missingKey 走 `logger.log`，而 log/warn 两级是 debugOnly——不开 `debug: true` 就完全静默**。本课 init 已开，生产项目靠 `missingKeyHandler` 上报而不是开 debug。
 
 ### `src/pages/Lesson33.jsx` —— 编排页
 
-页面自身零 state，骨架文案（标题、简介、选型卡）全部走 `t()`——切换语言时连 `<h1>` 都换词，这就是"整页变化"和"卡片内变化"的区别。选型卡数据抽成模块常量 `DECISION`，key 与字典一一对应。
+页面自身零 state，骨架文案（标题、简介、选型卡）全部走 `t()`。切换语言时连 `<h1>` 都换词——这就是"整页变化"和"卡片内变化"的区别。选型卡数据抽成模块常量 `DECISION`，key 与字典一一对应。
 
 ## 动手试一试
 

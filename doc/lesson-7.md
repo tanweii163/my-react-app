@@ -20,6 +20,8 @@
 
 ### 从 useState 到 useReducer：问题出在哪
 
+> **一句话记住：** 多处代码各改一份状态，容易出不一致的中间态；useReducer 把"怎么改"全收进一个纯函数。
+
 第 1 课以来我们一直用 `useState` 管状态，它的模式是"setter 分布在各个事件处理函数里"。状态简单时这很清爽，但想象一个购物车：
 
 - 点"加入"要先查购物车里有没有同款，有就合并数量，没有就新增条目；
@@ -44,14 +46,30 @@ const [state, dispatch] = useReducer(reducer, initialState)
 
 组件里从此只剩 `dispatch({ type: 'add', payload: product })`——它只是"发出一条通知"：**发生了什么事（type）+ 相关数据（payload）**。至于通知之后状态变成什么样，组件不关心、也不许关心，全在 reducer 里。
 
+**图：dispatch → reducer → 新 state → 重渲染**
+
+```mermaid
+flowchart LR
+    D["dispatch action"] --> R["reducer 纯函数"]
+    R -->|"返回新引用"| S["新 state"]
+    S --> RR["重渲染"]
+    RR -->|"用户再次操作"| D
+```
+
 ### reducer 是纯函数：两条铁律
+
+> **一句话记住：** 同样的输入永远同样的输出，且永远返回新对象——引用没变 React 就不重渲染。
+
+为什么必须是纯函数？因为 React 全靠"引用变没变"来决定重渲染。具体是两条铁律：
 
 `reducer(state, action) → newState` 必须是纯函数：
 
 1. **同样的输入永远得到同样的输出**：不发请求、不 `Date.now()`、不改 state 之外的任何变量；
 2. **不修改传入的 state**：永远返回新对象/新数组。
 
-为什么铁律 2 不能破？React 用 `Object.is` 比较**新旧 state 的引用**来决定要不要重渲染。你写 `state.items.push(item)`，内容变了但引用没变，React 认为"没变化"，界面纹丝不动——这是本课最经典的 bug 来源。
+为什么铁律 2 不能破？React 用 `Object.is` 比较**新旧 state 的引用**来决定要不要重渲染。
+
+你写 `state.items.push(item)`，内容变了但引用没变。React 认为"没变化"，界面纹丝不动——这是本课最经典的 bug 来源。
 
 固定手法对照（在 `cartReducer.js` 里都有对应注释）：
 
@@ -66,6 +84,8 @@ const [state, dispatch] = useReducer(reducer, initialState)
 
 ### action 与 payload：让通知自带数据
 
+> **一句话记住：** 通知 = 发生了什么（type）+ 相关数据（payload）；怎么改状态是 reducer 的事。
+
 action 是一个普通对象，约定 `{ type, payload }`：
 
 ```jsx
@@ -78,9 +98,17 @@ dispatch({ type: 'clear' }) // 不需要数据就不带 payload
 
 ### 状态转移一步到位
 
-`dec` 是最好的例子：数量大于 1 就减一，等于 1 就整行删除。用 useState 你得写"先 `setQty(q => q - 1)`，再判断要不要 `setItems(filter)`"——两次 setState 之间就存在中间态。reducer 里这只是**一个 case 返回一个结果**：算出最终形态，一次到位，不存在中间态。
+> **一句话记住：** 一个 case 直接算出最终形态，没有两步 setState 之间的中间态。
+
+为什么这条值得单独讲？先看 `dec` 这个最好的例子：数量大于 1 就减一，等于 1 就整行删除。
+
+用 useState 你得写"先 `setQty(q => q - 1)`，再判断要不要 `setItems(filter)`"——两次 setState 之间就存在中间态。
+
+reducer 里这只是**一个 case 返回一个结果**：算出最终形态，一次到位，不存在中间态。
 
 ### useReducer vs useState 怎么选
+
+> **一句话记住：** 独立简单值用 useState；多处操作联动同一份数据，就升级 useReducer。
 
 | 场景 | 选谁 | 理由 |
 |---|---|---|
@@ -91,7 +119,19 @@ dispatch({ type: 'clear' }) // 不需要数据就不带 payload
 
 经验法则：**`setXxx` 的回调逻辑开始在不同地方复制粘贴时，就是升级 useReducer 的信号**。两者不互斥——真实项目里一个页面常常是"复杂对象用 reducer，零散简单值用 useState"。
 
+**图：useState 还是 useReducer——选择流程**
+
+```mermaid
+flowchart TD
+    Q["新状态要怎么选"] -->|"独立简单的值"| U1["useState"]
+    Q -->|"多处修改同一份数据"| DR["useReducer"]
+    Q -->|"下一步依赖上一步 先查再改"| DR
+    Q -->|"更新逻辑要单独测试"| DR
+```
+
 ### 派生数据依然直接算
+
+> **一句话记住：** 总价、件数渲染时现算，绝不存进 state——reducer 正是为了消灭手动同步。
 
 总计、件数都是从 `items` 能直接算出来的派生数据（第 2 课讲过的原则在这里同样适用）：渲染时 `reduce` 现算，**绝不**再 `useState` 存一份总价——否则每次 dispatch 之后你还得记得同步它，而 reducer 恰恰是为了消灭这种"手动同步"才存在的。
 

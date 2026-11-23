@@ -21,7 +21,11 @@
 
 ### 样板从哪来：受控表单的"每字段四件套"
 
-第 1 课的 TodoList 只有一个输入框，手写毫无压力：一个 `draft` state、一个 `onChange`、提交时 `trim` 一下判空。但把这套写法放大到本课的 4 个字段（见 `ControlledFormEcho.jsx`），清单就变成了：
+> **一句话记住：** 受控表单每个字段要配 value、onChange、error、清错四件套——字段翻倍，样板也翻倍。
+
+为什么先看受控写法？因为不亲手体验一次"样板爆炸"，你不知道 RHF 到底替你省了什么。第 1 课的 TodoList 只有一个输入框，手写毫无压力：一个 `draft` state、一个 `onChange`、提交时 `trim` 一下判空。
+
+但把这套写法放大到本课的 4 个字段（见 `ControlledFormEcho.jsx`），清单就变成了：
 
 - 4 个**值 state**（`name / url / category / note`）；
 - 4 个**错误 state**（`nameError / urlError / ...`，和值靠命名约定配对）;
@@ -32,6 +36,8 @@
 规则、中文消息、展示位置三样东西散落在组件各处，全靠人肉对齐。字段翻倍，这份清单也翻倍——这就是"样板爆炸"。
 
 ### RHF 的答案：register 收集，submit 时一次性校验
+
+> **一句话记住：** register 是"非受控注册"——输入框自己管自己，RHF 只在提交时一次性伸手拿值。
 
 react-hook-form 的核心思路和受控组件相反：**输入框自己管自己，RHF 只在需要的时刻伸手拿值**。
 
@@ -46,9 +52,11 @@ const { register, handleSubmit } = useForm({ resolver: zodResolver(schema) })
 - 输入过程中组件**不重渲染**（值存在 RHF 内部，不进 state）——这正是它比受控写法"轻"的原因；
 - 代价也随之而来：想在某处实时看到值，就得用 `watch` 主动订阅（见下文）。
 
-校验时机默认是**提交时**（`mode: 'onSubmit'`）：用户打字打到一半不会被打扰，点提交才一次性校验全部字段。
+校验时机默认是**提交时**（`mode: 'onSubmit'`）。用户打字打到一半不会被打扰，点提交才一次性校验全部字段。
 
 ### zod schema：规则集中一处，zodResolver 接线
+
+> **一句话记住：** 规则和中文错误消息写进一份纯 JS 的 schema——只有一处真相，组件里零校验代码。
 
 手写版的规则散在 validate() 里；库版把全部规则搬进 `schema.js`，规则和它的中文错误消息写在同一行：
 
@@ -65,9 +73,13 @@ note: z.string().max(50, '备注最多 50 字').optional(),
 - **schema 是纯 JS**：不依赖 React，单元测试、TypeScript 类型推导、将来的后端校验都能 import 同一份规则；
 - **schema 还负责整形**：提交时 `onValid` 拿到的 `values.name` 已经是 `trim` 过的版本——"校验"和"清洗"是一件事。
 
-`zodResolver(schema)` 是两个库之间的接线盒：RHF 在提交时把整份表单值交给它，拿到 `{ values, errors }` 后决定走 `onValid` 还是 `onInvalid`。
+`zodResolver(schema)` 是两个库之间的接线盒。RHF 在提交时把整份表单值交给它，拿到 `{ values, errors }` 后决定走 `onValid` 还是 `onInvalid`。
 
 ### handleSubmit 的双回调分流
+
+> **一句话记住：** 通过 schema 走 onValid，任一字段失败走 onInvalid——组件里一行判断都不剩。
+
+为什么需要分流？手写版提交后要先 validate()、再 if 判断有没有错、再手动走两条路。`handleSubmit` 把这套判断收编成两个回调：
 
 ```jsx
 <form onSubmit={handleSubmit(onValid, onInvalid)}>
@@ -77,6 +89,18 @@ note: z.string().max(50, '备注最多 50 字').optional(),
 - `onInvalid(errors)`：**任一字段失败就整体走这里**，参数是按字段分好组的 errors 对象。
 
 对比手写版"提交 → validate() → if 判断有没有错"的三步，库把"通过与否"直接分流到两个回调，组件里一行判断都不剩。`handleSubmit` 内部自己会 `preventDefault`，也不用再手写。
+
+**图：提交时一次校验的双回调分流**
+
+```mermaid
+flowchart TD
+    A["用户点击提交"] --> B["handleSubmit 接管<br/>自动 preventDefault"]
+    B --> C["zodResolver 执行 schema<br/>校验并整形全部字段"]
+    C -->|"全部通过"| D["onValid(values)<br/>await 提交 · isSubmitting"]
+    C -->|"任一字段失败"| E["onInvalid(errors)<br/>错误按字段分组"]
+    D --> F["reset() 回出厂设置"]
+    E --> G["内联红字展示<br/>errors.name.message"]
+```
 
 每个字段的错误内联展示只剩三行固定句式：
 
@@ -88,20 +112,26 @@ note: z.string().max(50, '备注最多 50 字').optional(),
 
 ### defaultValues 与 reset：表单的"出厂设置"
 
-`useForm({ defaultValues })` 定下表单的初始值（本课的 `EMPTY_DEFAULTS` 全空）；`reset()` 有两种用法：
+> **一句话记住：** defaultValues 定出厂设置，reset 一句话整表复位——不用逐字段手动 setXxx('')。
+
+表单需要两个"回到起点"的动作：初始化的默认值、提交成功后的清空。`useForm({ defaultValues })` 定下表单的初始值（本课的 `EMPTY_DEFAULTS` 全空）；`reset()` 有两种用法：
 
 - **`reset()` 无参**：回到 `defaultValues`，同时清空 errors、复位 isSubmitting——本课在提交成功后调用它；
 - **`reset(对象)` 带参**：把表单带到给定值——本课的"填充示例"按钮用 `reset(SAMPLE)` 一键填好整张表。
 
-手写版里"成功后清空"是 4 行 `setName('') ...`；字段再多两倍，就是 12 行，而且漏一行就漏一个字段。
+手写版里"成功后清空"是 4 行 `setName('') ...`。字段再多两倍，就是 12 行，而且漏一行就漏一个字段。
 
 ### watch：把一个字段拉回受控世界（预览 + 代价）
+
+> **一句话记住：** watch 是"实时看到输入"的唯一途径，但每次击键都重渲染——只 watch 真正要展示的字段。
 
 `const previewUrl = watch('url')` 订阅 url 字段的实时值。这是 RHF 里"实时看到输入"的唯一途径，也因此**每次击键都会重渲染组件**——watch 一个字段是小代价，watch 整张表单（`watch()` 无参）就等于放弃了非受控的性能优势。原则：**只 watch 真正要展示的字段**。
 
 另外注意语义差别：`watch` 拿到的是输入框此刻的**原文**，没经过 schema 校验——本课的预览链接把半截网址也照样渲染（点了打不开没关系），**预览要宽容，提交才严格**。
 
 ### 与手写方案对比
+
+> **一句话记住：** 库收编了收集、校验、分组、分流、重置五件体力活；代价是多一层抽象——小表单手写依然合理。
 
 | | 第 1/5 课手写受控 | 本课 RHF + zod |
 |---|---|---|
@@ -114,7 +144,26 @@ note: z.string().max(50, '备注最多 50 字').optional(),
 
 **库解决了什么**：把"收集、校验、错误分组、提交分流、重置"这五件每个表单都要重做一遍的体力活收编成声明式配置；规则从组件里搬进纯 JS 的 schema，获得了可测试、可共享（类型推导、后端）的额外红利。
 
-**代价是什么**：多一层抽象——register 的 ref 机制、formState 的 Proxy 订阅、resolver 接口，出了问题要翻库文档而不是盯着自己的代码；两个库的依赖体积；以及"输入不重渲染"这个特性本身要求你理解 watch 的取舍，否则会在"为什么界面上这个值不更新"上栽跟头。**字段只有一两个、规则一眼看完时，手写受控依然是合理选择——别为了用库而用库。**
+**代价是什么**：多一层抽象。具体贵在三处：
+
+- register 的 ref 机制、formState 的 Proxy 订阅、resolver 接口——出了问题要翻库文档，而不是盯着自己的代码；
+- 两个库的依赖体积；
+- "输入不重渲染"这个特性本身，要求你理解 watch 的取舍，否则会在"为什么界面上这个值不更新"上栽跟头。
+
+**字段只有一两个、规则一眼看完时，手写受控依然是合理选择——别为了用库而用库。**
+
+**图：两套方案的数据通路对比**
+
+```mermaid
+flowchart LR
+    subgraph 手写["手写受控（每字段四件套）"]
+        K1["击键"] --> K2["onChange"] --> K3["value state"] --> K4["每次重渲染"]
+    end
+    subgraph 库版["RHF 非受控"]
+        R1["击键"] --> R2["register 的 ref<br/>值进库内部"] --> R3["组件不重渲染"]
+        R4["watch('url')"] -.->|"订阅才有实时值<br/>有重渲染代价"| R2
+    end
+```
 
 ## 代码导读
 

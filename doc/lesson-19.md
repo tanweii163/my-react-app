@@ -21,6 +21,8 @@
 
 ### 从"提交事件"到"提交 Action"
 
+> **一句话记住：** `<form action={fn}>` 让"提交"从事件回调升级为框架调度的一等公民——pending、不重载页面全由框架管。
+
 前 18 课里，表单提交永远长这样（第 1、5 课）：
 
 ```js
@@ -32,9 +34,33 @@ function handleSubmit(e) {
 }
 ```
 
-React 19 把这套样板收编为语言级设施：`<form action={formAction}>`。action 是一个**异步函数**，React 负责"提交期间不丢输入、自动暴露 pending 状态、天然不重载页面"。这不是语法糖——它让"提交"从事件回调升级为**可以被框架调度的一等公民**（服务端组件、表单重置、多表单协调都建立在它上面）。
+React 19 把这套样板收编为语言级设施：`<form action={formAction}>`。action 是一个**异步函数**，React 负责"提交期间不丢输入、自动暴露 pending 状态、天然不重载页面"。
+
+这不是语法糖——它让"提交"从事件回调升级为**可以被框架调度的一等公民**（服务端组件、表单重置、多表单协调都建立在它上面）。
+
+**图：React 19 新特性分组概览**
+
+```mermaid
+mindmap
+  root(("React 19"))
+    Actions
+      form action 提交
+      useActionState 三态
+      useFormStatus 按钮 pending
+    乐观更新
+      useOptimistic
+      过渡结束自动回滚
+    其他新 API
+      use 读 Promise
+      use 读 Context
+      use 时组件暂停<br/>Suspense 兜底
+```
 
 ### useActionState：三态打包
+
+> **一句话记住：** action 的返回值就是下一次渲染的 state——pending、error、success 三态一次打包拿走。
+
+提交表单要管三件事：pending 提示、错误信息、成功反馈。以前要手写三个 state，现在一个 Hook 全包。
 
 ```js
 const [state, formAction, isPending] = useActionState(async (prev, formData) => {
@@ -55,6 +81,10 @@ const [state, formAction, isPending] = useActionState(async (prev, formData) => 
 
 ### useFormStatus：按钮自己知道"提交中"
 
+> **一句话记住：** 它读的是最近祖先 form 注入的提交状态——必须写在表单的子组件里，否则永远 pending=false。
+
+为什么按钮不能直接用父组件的 `isPending`？可以传，但要一层层往下传。`useFormStatus` 让按钮自给自足：
+
 ```jsx
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -64,7 +94,20 @@ function SubmitButton() {
 
 它读的是**最近的祖先 `<form>`** 通过 Context 注入的提交状态。所以铁律：**必须写在表单的子组件里**——直接写在 `<form>` 所在的同一个组件里，上方没有 form，永远读到 `pending = false`，按钮永远不会禁用。这也是官方推荐的拆法：把按钮抽出去，按钮自给自足，父组件不用把 `isPending` 一层层传下来。
 
+**图：useFormStatus 的作用范围**
+
+```mermaid
+flowchart TD
+    A["&lt;form action=…&gt;"] -->|"React 注入提交状态"| B["Context（不可见的桥）"]
+    B --> C["子组件 SubmitButton<br/>useFormStatus() 读到 pending"]
+    B --> D["其他子组件同样可读"]
+    A -.->|"❌ 同一组件里调用<br/>上方没有 form"| E["永远读到 pending=false"]
+```
+
+
 ### useOptimistic：先打欠条，失败自动回滚
+
+> **一句话记住：** 乐观值是真实值的临时投影，活在一次 transition 里——过渡结束自动回滚，失败时撤销代码一行都不用写。
 
 点赞、加购物车、发弹幕——这些操作如果等服务器回来再更新 UI，会"迟钝"。乐观更新是：**先呈现预期结果，后台确认；成功坐实，失败回滚**。
 
@@ -85,13 +128,42 @@ startTransition(async () => {
 })
 ```
 
-回滚为什么"自动"？因为**乐观值只是真实值的一次临时投影**，它的寿命被限定在一次 transition 内——transition 结束（await 落定），UI 一律回到真实值。失败时真实值没动过，UI 自然弹回原状。三个使用铁律：
+回滚为什么"自动"？因为**乐观值只是真实值的一次临时投影**，它的寿命被限定在一次 transition 内——transition 结束（await 落定），UI 一律回到真实值。失败时真实值没动过，UI 自然弹回原状。
+
+三个使用铁律：
 
 1. `addOptimistic` 必须包在 `startTransition`（或 form action）里，否则没有"过渡结束"这个回滚时机；
 2. 更新函数必须是**纯函数**（不能 setState、不能发请求）；
 3. 成功路径**必须真的 setState 更新真实值**，否则乐观值一消失，操作就白做了。
 
+**图：乐观点赞的时序——欠条、确认与回滚**
+
+```mermaid
+sequenceDiagram
+    participant U as 用户
+    participant C as LikeButton 组件
+    participant T as transition 过渡期
+    participant S as mock 服务器
+
+    U->>C: 点击点赞
+    C->>T: startTransition 内 addOptimistic(1)
+    T-->>U: 界面立刻显示 +1（欠条）
+    C->>S: await likePost()
+    alt 请求成功
+        S-->>C: 200
+        C->>C: setLikes(n => n + 1)
+        Note over T: 过渡结束，欠条无缝转正
+    else 请求失败
+        S-->>C: reject
+        Note over T: 过渡结束，UI 自动弹回真实值
+        C->>U: setError 提示，零撤销代码
+    end
+```
+
+
 ### 附：use() API 一行带过
+
+> **一句话记住：** use() 不是真正的 Hook——能在 if 里调用，读 Promise 未完成时组件暂停，交给 Suspense 兜底。
 
 ```js
 const message = use(myPromise)   // 读 Promise：未完成时组件暂停渲染，交给外层 <Suspense>
@@ -144,7 +216,13 @@ const theme = use(ThemeContext)  // 读 Context：等价 useContext，但可以�
 
 **库/框架解决了什么**：三态样板和回滚逻辑从"每个表单复制一遍的人肉纪律"变成框架保证的不变量——手写版最常见的 bug（忘 finally 关 pending、忘 catch 回滚、错误提示不清理）在 React 19 里结构上不可能发生。
 
-**代价是什么**：心智模型变了——`state` 是"上次 action 的返回值"而不是"任意可 set 的盒子"，想在 action 外改它反而别扭；乐观更新被绑死在 transition 语义里，多条并发乐观操作的合并策略要自己在纯函数里想清楚；`useFormStatus` 的子组件约束、`useActionState` 的 `(prev, formData)` 签名都是必须记住的新规矩。第 20 课的 TanStack Query 会给出另一个流派的答案（见下面练习 2）。
+**代价是什么**：心智模型变了。
+
+- `state` 是"上次 action 的返回值"，而不是"任意可 set 的盒子"——想在 action 外改它反而别扭。
+- 乐观更新被绑死在 transition 语义里，多条并发乐观操作的合并策略要自己在纯函数里想清楚。
+- `useFormStatus` 的子组件约束、`useActionState` 的 `(prev, formData)` 签名，都是必须记住的新规矩。
+
+第 20 课的 TanStack Query 会给出另一个流派的答案（见下面练习 2）。
 
 ## 动手试一试
 

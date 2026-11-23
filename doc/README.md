@@ -10,6 +10,8 @@
 3. 做「动手试一试」练习，「自测题」口答自检
 4. 全部学完可回看每课页面，检验是否还能讲出每块代码为什么这么写
 
+讲义在关键概念处配有 mermaid 图，GitHub 可直接渲染，VS Code 需安装 Mermaid 预览插件。
+
 ## 课程表
 
 | 课 | 主题 | 讲义 | 页面路由 | 核心源码 |
@@ -104,6 +106,58 @@ UI = f(state)                    ← 第 1 课：一切的开始
   + 把数据画出来                 ← 第 38 课：SVG 可视化
   + 真实用户指标                 ← 第 39 课：Web Vitals
   + 接上真实世界                 ← 第 40 课：真实后端
+```
+
+**图：React 40 课全景**
+
+```mermaid
+mindmap
+  root(("React 40 课"))
+    地基
+      JSX 与 State
+      useEffect
+      Router
+      状态提升与 Ref
+      Context 与 Reducer
+      自定义 Hook
+      渲染性能
+      综合实战一
+    进阶
+      数据获取工程化
+      代码分割
+      错误边界
+      并发渲染
+      Vitest 测试
+    实战库
+      TanStack Query
+      表单与 zod
+      Zustand
+      React 19
+      综合实战二
+    收官
+      TypeScript
+      设计模式
+      动画
+      构建部署
+      学习护照
+    工程素养
+      可访问性
+      前端安全
+      useSyncExternalStore
+      调试方法论
+      迷你监控台
+    新领域
+      Next.js 与 RSC
+      虚拟列表
+      i18n
+      Tailwind
+      PWA
+    贯通
+      Playwright
+      framer-motion
+      SVG 可视化
+      Web Vitals
+      真实后端
 ```
 
 ## 项目结构约定

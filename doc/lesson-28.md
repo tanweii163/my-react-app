@@ -1,6 +1,10 @@
 # 第 28 课 · 实时数据与 useSyncExternalStore
 
-有些数据不在 React 手里：WebSocket 服务器每秒推送行情、第三方 SDK 持续发事件、浏览器在渲染之外默默变化。这些"外部世界"不经过 setState，React 却要显示它们。本课给出官方专用接缝：**外部 store 三件套 + `useSyncExternalStore`**，并把第 2 课的清理原则延伸到模块层——最后一个听众退订时，连接也要关掉。打开 http://localhost:5173/lesson/28 ，点一遍"模拟断线"，看着状态徽章走完整个重连状态机。
+有些数据不在 React 手里：WebSocket 服务器每秒推送行情、第三方 SDK 持续发事件、浏览器在渲染之外默默变化。这些"外部世界"不经过 setState，React 却要显示它们。
+
+本课给出官方专用接缝：**外部 store 三件套 + `useSyncExternalStore`**，并把第 2 课的清理原则延伸到模块层——最后一个听众退订时，连接也要关掉。
+
+打开 http://localhost:5173/lesson/28 ，点一遍"模拟断线"，看着状态徽章走完整个重连状态机。
 
 ## 学习目标
 
@@ -14,7 +18,9 @@
 
 ## 核心概念
 
-**外部世界的形状。** 真实 WebSocket 的接口就四样：`onopen` / `onmessage` / `onclose` 回调 + `send()`。它的生命周期不受 React 管——组件挂载时它可能已经连着，卸载后它还在推消息。所以接它的第一原则不是"怎么读"，而是"怎么订阅、怎么退订"。
+**外部世界的形状。** 真实 WebSocket 的接口就四样：`onopen` / `onmessage` / `onclose` 回调 + `send()`。
+
+它的生命周期不受 React 管——组件挂载时它可能已经连着，卸载后它还在推消息。所以接它的第一原则不是"怎么读"，而是"怎么订阅、怎么退订"。
 
 **三件套契约。** `useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)`：
 
@@ -22,11 +28,75 @@
 - `getSnapshot()`：返回当前快照。铁律：**数据没变就返回同一个引用**。React 拿引用对比决定要不要重渲染；
 - `getServerSnapshot()`：服务端渲染/水合时读的快照，必须是和客户端"形状一致"的静态值。浏览器渲染可以省略它，但组件一旦可能跑在服务端就必须提供。
 
-**稳定引用为什么是生死线。** 假设 `getSnapshot` 写成 `return { prices: this._prices, status }`——每次调用都新建对象，引用永远不同。React 的判断逻辑是"订阅通知后取快照对比引用，不同就重渲染"，于是：渲染 → 取快照 → 引用变了 → 再渲染 → 引用又"变了"……无限循环，页面直接卡死。正确做法是 store 内部维护一个 `_snapshot` 缓存字段，只在数据真正变化时（发布通道里）整体换新引用。
+**图：外部 store 订阅与通知的完整时序**
 
-**tearing（撕裂），一句带过。** React 18 并发渲染下，多个组件分别用 `useEffect + setState` 订阅同一外部源，可能在同一次提交里读到不同版本的数据（一个组件显示 100.2，另一个显示 100.5）。`useSyncExternalStore` 保证渲染过程中读到的快照永远一致——这就是它存在的核心理由，比"省几行代码"重要得多。
+```mermaid
+sequenceDiagram
+    participant R as React 组件
+    participant H as useSyncExternalStore
+    participant S as 外部 Store
+    participant W as 外部世界<br/>Socket
 
-**重连状态机。** 网络是不可靠的，生产级 socket 库（socket.io 等）都内置重连。手写版只有四个状态：`connecting`（握手中）→ `open`（正常）→ 断线后 `reconnecting`（指数退避：800ms → 1600ms → 3200ms）→ 重试上限后 `closed`。两条铁律：手动 `close()` 与意外断线必须分流（手动关闭永不自动重连，否则你关不掉它）；重试用尽要把决定权交回 UI（用户点"重连"才复活），而不是无限重试。
+    R->>H: 组件挂载
+    H->>S: subscribe(listener)
+    S-->>H: 返回退订函数
+    H->>S: getSnapshot 取初始快照
+    S->>W: 首个订阅者出现才 connect
+    W->>S: 数据变化（onmessage）
+    S->>S: 发布通道换新快照引用
+    S->>H: 通知 listener
+    H->>S: getSnapshot 再取快照
+    S-->>H: 新引用
+    H->>R: 触发重渲染
+    R->>R: 卸载时调用退订函数
+    R->>S: 最后一个听众退订 → close
+```
+
+**稳定引用为什么是生死线。** 假设 `getSnapshot` 写成 `return { prices: this._prices, status }`——每次调用都新建对象，引用永远不同。
+
+React 的判断逻辑是"订阅通知后取快照对比引用，不同就重渲染"，于是：渲染 → 取快照 → 引用变了 → 再渲染 → 引用又"变了"……无限循环，页面直接卡死。
+
+正确做法是 store 内部维护一个 `_snapshot` 缓存字段，只在数据真正变化时（发布通道里）整体换新引用。
+
+**图：不稳定引用引发的无限循环**
+
+```mermaid
+flowchart TD
+    A["getSnapshot 每次新建对象"] --> B["渲染时取快照"]
+    B --> C["引用与上次不同"]
+    C --> D["React 判定数据变了"]
+    D --> E["触发重渲染"]
+    E --> B
+    B2["缓存 _snapshot 字段<br/>只在发布时换引用"] -.-> F["引用稳定<br/>Object.is 相等"]
+    F -.-> G["跳过重渲染"]
+```
+
+**tearing（撕裂），一句带过。** React 18 并发渲染下，多个组件分别用 `useEffect + setState` 订阅同一外部源，可能在同一次提交里读到不同版本的数据（一个组件显示 100.2，另一个显示 100.5）。
+
+`useSyncExternalStore` 保证渲染过程中读到的快照永远一致——**这就是它存在的核心理由，比"省几行代码"重要得多**。
+
+**重连状态机。** 网络是不可靠的，生产级 socket 库（socket.io 等）都内置重连。
+
+手写版只有四个状态：`connecting`（握手中）→ `open`（正常）→ 断线后 `reconnecting`（指数退避：800ms → 1600ms → 3200ms）→ 重试上限后 `closed`。
+
+两条铁律：
+
+- 手动 `close()` 与意外断线必须分流（手动关闭永不自动重连，否则你关不掉它）；
+- 重试用尽要把决定权交回 UI（用户点"重连"才复活），而不是无限重试。
+
+**图：断线重连状态机**
+
+```mermaid
+stateDiagram-v2
+    [*] --> connecting: connect()
+    connecting --> open: 握手成功
+    open --> closed: 手动 close（永不重连）
+    open --> reconnecting: 意外断线
+    reconnecting --> open: 退避重试成功<br/>800ms→1600ms→3200ms
+    reconnecting --> closed: 重试上限用尽
+    closed --> connecting: 用户点重连<br/>计数清零
+    closed --> [*]
+```
 
 ## 代码导读
 

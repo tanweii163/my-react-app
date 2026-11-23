@@ -21,6 +21,8 @@
 
 ### 演进史：mixin → HOC → render props → Hooks
 
+> **一句话记住：** 每一代复用方案的死因，就是下一代的第一卖点——Hooks 是终点站。
+
 React 只有一样东西真正难复用：**带着状态的逻辑**。UI 好办（拆组件就行），难的是"这份状态、这个副作用、这套操作"想在多个组件里用。这个难题先后出现过四代答案，每一代都解决了上一代的问题，又引入了自己的新问题：
 
 | 代际 | 代表 | 解决了什么 | 引入了什么新问题 |
@@ -30,13 +32,32 @@ React 只有一样东西真正难复用：**带着状态的逻辑**。UI 好办�
 | **render props**（2017–2019） | downshift、react-motion、老 react-router 的 `<Route render={…}>` | 把数据来源摆上台面：行为组件不决定画什么，把"状态 + 操作"当**函数参数**递出去，调用方在参数表上亲眼看到 `(on, toggle) => …`——来源问题根治；一个组件也可以只复用行为不绑死皮肤 | **嵌套地狱**（每个要复用的行为一层函数嵌套，`<Mouse>{(m) => <Cat>{(c) => …`）；**闭包重建**（render 函数每次渲染都是新函数，下游任何依赖函数引用相等性的 memo 优化都会失效）；"先逻辑后渲染"的灵活度不如后来的 Hook |
 | **Hooks**（2019–） | 自定义 Hook：`useToggle`、`useStopwatch`、`useFetch`（第 8/11 课） | 无包装、无嵌套、来源清晰——每个 `useXxx()` 调用就写在组件体里，用了几份逻辑一目了然；逻辑可以按"能力"切分而不是按生命周期切分 | **新的心智负担**：规则（只在顶层调用，第 8 课铁律）、闭包陷阱、`useEffect` 依赖数组的心智成本。但这是四代里第一个"没有结构性新问题"的答案——所以它成了终点站 |
 
-读这张表的正确姿势：**每一代的死因，都是下一代的第一卖点**。mixin 死于隐式 → HOC 用显式包装解决 → HOC 死于包装 → render props 用函数参数解决 → render props 死于嵌套 → Hooks 用平铺调用解决。这不是"新版本替代旧版本"的普通迭代，而是一个问题（带状态逻辑的复用）被反复重解的历史——看懂它，你读任何 React 老代码、任何库的 changelog 都不慌。
+读这张表的正确姿势：**每一代的死因，都是下一代的第一卖点。**
+
+- mixin 死于隐式 → HOC 用显式包装解决；
+- HOC 死于包装 → render props 用函数参数解决；
+- render props 死于嵌套 → Hooks 用平铺调用解决。
+
+这不是"新版本替代旧版本"的普通迭代，而是一个问题（带状态逻辑的复用）被反复重解的历史——看懂它，你读任何 React 老代码、任何库的 changelog 都不慌。
+
+**图：逻辑复用四代演进——每代的死因是下一代的卖点**
+
+```mermaid
+flowchart LR
+    M["mixin<br/>死于：隐式依赖 · 命名冲突"] -->|"显式包装解决"| H["HOC<br/>死于：包装地狱 · props 来源不明"]
+    H -->|"函数参数解决"| R["render props<br/>死于：嵌套地狱"]
+    R -->|"平铺调用解决"| K["Hooks<br/>终点站：无包装 · 来源清晰"]
+```
 
 （顺带修正一个常见误解：Hooks 出现后 `React.createClass` 时代的容器组件确实退场了，但 render props 并没有"死"——它作为库 API 里的渲染约定活得好好的，只是不再承担"通用逻辑复用"的职责。）
 
 ### 三种模式各自长什么样
 
-**组合组件（Compound Components）**解决的是另一道题——**结构复用**：Tabs、手风琴、下拉菜单这类"一家人"组件，调用方想自己决定内部怎么排布（哪个标签在前、面板里放什么内容），而不是拿一个只吃配置数组 props 的黑盒：
+> **一句话记住：** 组合组件管结构复用，render props 管逻辑复用，容器/展示管职责划分。
+
+三种模式解决三道不同的题，逐个看。
+
+**组合组件（Compound Components）**解决的是**结构复用**：Tabs、手风琴、下拉菜单这类"一家人"组件，调用方想自己决定内部怎么排布（哪个标签在前、面板里放什么内容），而不是拿一个只吃配置数组 props 的黑盒：
 
 ```jsx
 <Tabs defaultValue="what">
@@ -49,7 +70,11 @@ React 只有一样东西真正难复用：**带着状态的逻辑**。UI 好办�
 </Tabs>
 ```
 
-三个约定：① 子组件**静态挂载**在父对象上（`Tabs.List = List`）——JS 里组件也是对象，长属性只是命名空间把戏，不是继承；② 子组件之间**零 props**，谁也不知道谁的存在；③ 父组件只管状态（activeId），`children` 原样渲染，一个字都不加工。
+三个约定：
+
+1. 子组件**静态挂载**在父对象上（`Tabs.List = List`）——JS 里组件也是对象，长属性只是命名空间把戏，不是继承；
+2. 子组件之间**零 props**，谁也不知道谁的存在；
+3. 父组件只管状态（activeId），`children` 原样渲染，一个字都不加工。
 
 **render props** 解决**逻辑复用**（HOC 的继任者）：行为组件只持有状态与操作，渲染权完全交给调用方：
 
@@ -61,9 +86,25 @@ React 只有一样东西真正难复用：**带着状态的逻辑**。UI 好办�
 
 `Toggle` 自己渲染出来的东西 = 调用方函数的返回值。同一份 on/off 逻辑，配台灯是台灯，配密码框是密码框——本课的 `RenderProps.jsx` 里这两块并排跑着，皮肤完全不同。
 
-**容器/展示分离**（2015 年 Dan Abramov 的名文确立）解决**职责划分**：容器（Container）管数据与行为——状态、副作用、回调都在这层，自己几乎不写 UI；展示（Presentational）管长相——props 进、JSX 出，没有一行 hook。本课 `ContainerPresenter.jsx` 里同一个秒表写了分离版和合并版，行为完全一致，让你亲眼对比"组织方式"和"行为"是两回事。
+**图：行为组件把状态当参数递出去**
+
+```mermaid
+flowchart LR
+    T["Toggle 行为组件<br/>只持 useState(on) + toggle"] -->|"render(on, toggle)<br/>渲染权完全让渡"| L["台灯皮肤"]
+    T --> P["密码框皮肤<br/>on 决定 input type"]
+    H["Hooks 时代对应物<br/>useToggle()"] -.->|"平铺一行<br/>无嵌套"| C["任意组件"]
+```
+
+**容器/展示分离**（2015 年 Dan Abramov 的名文确立）解决**职责划分**：
+
+- 容器（Container）管数据与行为——状态、副作用、回调都在这层，自己几乎不写 UI；
+- 展示（Presentational）管长相——props 进、JSX 出，没有一行 hook。
+
+本课 `ContainerPresenter.jsx` 里同一个秒表写了分离版和合并版，行为完全一致，让你亲眼对比"组织方式"和"行为"是两回事。
 
 ### 为什么组合组件必须配 Context
+
+> **一句话记住：** children 的 props 通道被调用方拿走了，剩下的唯一通信线就是 Context。
 
 这是本课最容易"用的时候没感觉，自己写就栽坑"的一环。回到 Tabs 的用法：
 
@@ -75,7 +116,19 @@ React 只有一样东西真正难复用：**带着状态的逻辑**。UI 好办�
 
 所以"组合组件 + Context"不是搭配偏好，而是**结构上的必然**：组合组件把"结构控制权"交给了调用方，调用方拿走的正是"props 通道"，那么剩下的唯一通信线就是 Context。第 6 课学的三步走（createContext → Provider → useContext）在这里原样复用，只是主题从"主题数据"换成了"激活状态"。
 
+**图：Tabs 组合组件的 Context 广播**
+
+```mermaid
+flowchart TD
+    A["Tabs 父组件<br/>唯一状态所有者 activeId"] -->|"Provider 广播<br/>activeId + setActiveId"| B["Tabs.List 只管排版"]
+    A --> C["Tabs.Tab 读 + 写 activeId"]
+    A --> D["Tabs.Panel 只读<br/>非当前 return null"]
+    U["调用方 JSX 决定结构<br/>子组件间零 props"] -.->|"children 原样渲染<br/>props 塞不进去"| A
+```
+
 ### 选型结论：今天的默认答案
+
+> **一句话记住：** 默认 Hooks + 组合，其余模式在库源码里认得即可。
 
 2026 年写 React，选型是清晰的：
 
@@ -146,4 +199,6 @@ React 只有一样东西真正难复用：**带着状态的逻辑**。UI 好办�
 
 ## 下一课预告
 
-第 23 课：动画与过渡。组件的进出场不只是"有/没有"的瞬间切换：CSS transition 配 class 切换做进入过渡、React"卸载即消失"带来的退场动画难题（delayedUnmount 模式）、以及新的 View Transitions API。还会立一条性能铁律：动画只动 `transform` / `opacity`（合成层），别碰 `width` / `top`（触发重排）——顺便致敬本课灯泡上那一次小小的 `transition: background`。
+第 23 课：动画与过渡。组件的进出场不只是"有/没有"的瞬间切换：CSS transition 配 class 切换做进入过渡、React"卸载即消失"带来的退场动画难题（delayedUnmount 模式）、以及新的 View Transitions API。
+
+还会立一条性能铁律：动画只动 `transform` / `opacity`（合成层），别碰 `width` / `top`（触发重排）——顺便致敬本课灯泡上那一次小小的 `transition: background`。

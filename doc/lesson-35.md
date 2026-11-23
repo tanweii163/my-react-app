@@ -1,6 +1,6 @@
 # 第 35 课 · PWA 与离线体验
 
-最后一课（之一）我们把应用"装进"用户的设备：用 `manifest.webmanifest` 声明可安装性，用手写 Service Worker（SW）拦截网络请求、做缓存策略，让页面在断网时依然能打开。打开 http://localhost:5173/lesson/35 看讲义，真正的离线体验要在生产构建（`npm run build && npm run preview`）里实测——dev 下 SW 被故意禁用（第 24 课说过：dev 与 build 是两个世界）。
+最后一课（之一）我们把应用"装进"用户的设备：用 `manifest.webmanifest` 声明可安装性，用手写 Service Worker（SW，浏览器后台的代理脚本）拦截网络请求、做缓存策略，让页面在断网时依然能打开。打开 http://localhost:5173/lesson/35 看讲义。真正的离线体验要在生产构建（`npm run build && npm run preview`）里实测——dev 下 SW 被故意禁用（第 24 课说过：dev 与 build 是两个世界）。
 
 ## 学习目标
 
@@ -24,7 +24,16 @@
 
 ### SW 生命周期与作用域（为什么放 public/ 根）
 
-SW 是一个挂在浏览器后台的脚本，作用域（scope）由**文件路径**决定：`public/sw.js` 会被 Vite 原样拷到产物根目录，`register('/sw.js')` 的默认 scope 就是 `/`，能接管整站所有页面。如果放进 `/sub/sw.js`，它只能控制 `/sub` 下的页面——这是"为什么放根"的唯一原因，与代码写法无关。
+> **一句话记住：** SW 的权力范围由文件路径决定，放 public 根目录 scope 才是 /，才能接管整站；生命周期是 install → waiting → activate。
+
+先想清楚：一个脚本能拦截全站请求，它的权力边界在哪？
+
+SW 是一个挂在浏览器后台的脚本，作用域（scope，它有权控制的 URL 范围）由**文件路径**决定。
+
+- `public/sw.js` 会被 Vite 原样拷到产物根目录，`register('/sw.js')` 的默认 scope 就是 `/`，能接管整站所有页面。
+- 如果放进 `/sub/sw.js`，它只能控制 `/sub` 下的页面。
+
+这是"为什么放根"的唯一原因，与代码写法无关。
 
 生命周期三阶段：
 
@@ -32,13 +41,45 @@ SW 是一个挂在浏览器后台的脚本，作用域（scope）由**文件路�
 2. **waiting**：浏览器检测到新 `sw.js`（字节级对比）时，新 SW 走完 install **不会**立即接管，而是停在 waiting，等旧 SW 释放控制权（所有标签页关闭，或页面 `postMessage('SKIP_WAITING')` + `self.skipWaiting()`）。
 3. **activate**：接管前的最后机会——按缓存版本号删除旧缓存（`CACHE_VERSION` 常量 + `caches.keys()` 过滤），配合 `clients.claim()` 立即控制已打开的页面。
 
+**图：Service Worker 生命周期状态机**
+
+```mermaid
+stateDiagram-v2
+    [*] --> installing: 首次加载 sw.js
+    installing --> activated: install 预缓存成功
+    installing --> redundant: addAll 任一失败
+    activated --> activated: fetch 拦截, activate 清旧缓存
+    activated --> waiting: 检测到新 sw.js 字节有差异
+    waiting --> activated: 全部标签页关闭或 skipWaiting
+    waiting --> redundant: 被更新的版本取代
+    activated --> [*]
+```
+
 之后是日常工作的 **fetch 事件**：被控制页面发出的每个同源 GET 请求都流经这里，按请求类型套用不同缓存策略。
+
+**图：fetch 请求拦截与双策略分流**
+
+```mermaid
+flowchart TD
+    R["页面发出同源 GET 请求"] --> SW["sw.js 的 fetch 事件"]
+    SW --> T{"请求类型?"}
+    T -->|"页面导航 navigate"| NF["network-first: 先走网络"]
+    NF -->|"成功"| P["返回最新 HTML"]
+    NF -->|"失败断网"| PC["回退缓存的入口壳"]
+    T -->|"静态资源带 hash"| CF["cache-first: 先查缓存"]
+    CF -->|"命中"| PH["直接返回缓存副本"]
+    CF -->|"未命中"| NET["走网络并顺手写入运行时缓存"]
+```
 
 ### HTTPS 限制（localhost 豁免）
 
-SW 能拦截全站请求、伪造响应，是极敏感能力，因此浏览器要求**安全上下文**：必须 HTTPS。唯一的开发豁免是 `localhost`——这与第 24 课"Vite 环境变量只在构建时注入、生产敏感信息不暴露"是同一类思维：平台能力绑定安全边界。
+> **一句话记住：** SW 太敏感，浏览器只许它在安全上下文运行；唯一豁免是 localhost。
+
+为什么浏览器要设安全门槛？SW 能拦截全站请求、伪造响应，是极敏感能力，因此浏览器要求**安全上下文**：必须 HTTPS。唯一的开发豁免是 `localhost`。这与第 24 课"Vite 环境变量只在构建时注入、生产敏感信息不暴露"是同一类思维：**平台能力绑定安全边界**。
 
 ### 为什么预缓存不用精确文件列表
+
+> **一句话记住：** 构建产物文件名带 content hash，每次构建都变；预缓存只放稳定文件名，hash 资源交给运行时缓存。
 
 【铁律】Vite 构建的 js/css 文件名带 content hash（如 `assets/index-B3xk9.js`），每次构建都会变。手写列表必然在下次构建后指向 404，导致 `addAll` 失败、install 永远不成功。正确做法是：
 
@@ -47,6 +88,10 @@ SW 能拦截全站请求、伪造响应，是极敏感能力，因此浏览器�
 
 ### 缓存策略选型表
 
+> **一句话记住：** 不可变静态资源用 cache-first，页面和数据用 network-first，"稍旧但秒开"用 stale-while-revalidate。
+
+不同的资源对"新"与"快"的要求不同，所以要先分类型，再选策略：
+
 | 策略 | 做法 | 适合 |
 | --- | --- | --- |
 | cache-first | 先查缓存，未命中才走网络 | 带 hash 的静态 js/css/图片/字体——文件名即版本，命中即可信 |
@@ -54,6 +99,10 @@ SW 能拦截全站请求、伪造响应，是极敏感能力，因此浏览器�
 | stale-while-revalidate | 先回缓存，同时后台更新缓存 | 一句话：内容可以稍旧但必须秒开（头像、文章列表） |
 
 ### 更新流程完整时序
+
+> **一句话记住：** 浏览器字节对比发现新 SW → waiting 排队 → 页面提示 → skipWaiting → activate 清旧缓存 → 刷新生效。
+
+一次版本更新，从浏览器到用户屏幕，完整时序如下：
 
 ```
 用户再次访问站点
@@ -65,7 +114,26 @@ SW 能拦截全站请求、伪造响应，是极敏感能力，因此浏览器�
   → 页面监听 controllerchange → window.location.reload() → 新版本生效
 ```
 
+**图：SW 更新流程时序**
+
+```mermaid
+sequenceDiagram
+    participant B as 浏览器
+    participant O as 旧 SW
+    participant N as 新 SW
+    participant P as 页面
+    B->>O: 再次访问, 后台拉取 sw.js 对比
+    O->>N: 字节有差异, 新 SW 走 install
+    N->>N: 预缓存新壳后停在 waiting
+    P->>P: 发现 registration.waiting 显示更新提示
+    P->>N: 用户点击, postMessage SKIP_WAITING
+    N->>N: self.skipWaiting 并 activate 清旧缓存
+    P->>P: 监听 controllerchange 并 reload
+```
+
 ### Lighthouse PWA 评分（呼应第 24 课）
+
+> **一句话记住：** PWA 只能对生产构建打分，dev server 测不出真实表现。
 
 DevTools → Lighthouse → Progressive Web App，主要检查：HTTPS、manifest 完整（name、icons、start_url）、离线返回 200、注册了 SW。与第 24 课同理：**PWA 只能对生产构建打分**，dev server 测不出真实表现。
 

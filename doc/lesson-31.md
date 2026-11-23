@@ -10,17 +10,45 @@
 
 ## 核心概念
 
-**RSC 改变的是"组件在哪跑"。** 前 30 课的 SPA 里，所有组件代码被打包成 JS 下载到浏览器，在用户电脑上执行。Next.js 的服务端组件反过来：组件函数在 Node 服务器上执行，执行完的 HTML（+ 数据）被流式送给浏览器。这意味着三件事：
+**RSC 改变的是"组件在哪跑"。** 前 30 课的 SPA 里，所有组件代码被打包成 JS 下载到浏览器，在用户电脑上执行。
+
+Next.js 的服务端组件反过来：组件函数在 Node 服务器上执行，执行完的 HTML（+ 数据）被流式送给浏览器。
+
+**这意味着三件事：**
 
 1. **可以直接 await 数据**：`async function Page() { const data = await db.query() }` 是合法的组件——因为真的有服务器在跑它。SPA 里不行：你的代码只活在浏览器里，没人帮你提前算。
 2. **服务端代码不会泄漏**：`lib/data.ts` 里的"数据库"根本不进客户端 bundle，密码、内网地址随便放。
 3. **默认零交互成本**：服务端组件不往浏览器发 JS。需要交互（`useState`、`onClick`）的组件才显式写 `'use client'`，成为 bundle 里的"交互岛"。
 
-**`'use client'` 是边界，不是标签。** 它必须写在文件最顶部，声明"从本文件起（含它 import 的模块）进入客户端世界"。方向是单向的：服务端组件可以 import 客户端组件并把可序列化的 props 传给它；客户端组件不能 import 服务端模块。
+**`'use client'` 是边界，不是标签。** 它必须写在文件最顶部，声明"从本文件起（含它 import 的模块）进入客户端世界"。
+
+方向是单向的：服务端组件可以 import 客户端组件并把可序列化的 props 传给它；客户端组件不能 import 服务端模块。
 
 **水合（hydration）。** 首屏 HTML 是服务器吐的（秒开、可 SEO），但按钮点了没反应；等客户端 JS 下载并执行，React"接管"已有 DOM，页面才活过来。
 
+**图：一次 SSR 请求的完整时序**
+
+```mermaid
+sequenceDiagram
+    participant B as 浏览器
+    participant N as Next 服务器
+    participant D as 数据源<br/>db / data.ts
+
+    B->>N: GET / 请求页面
+    N->>N: 服务器上执行 RSC 组件树
+    N->>D: await getPosts()
+    D-->>N: 返回数据
+    N->>N: 渲染成 HTML + RSC payload
+    N-->>B: 流式下发首屏 HTML（秒开可 SEO）
+    B->>B: 立即可见，按钮尚未响应
+    B->>N: 下载客户端 JS（交互岛）
+    B->>B: React 水合接管已有 DOM
+    B->>B: 点赞按钮活过来了
+```
+
 ### Server / Client Component 判定表
+
+> **一句话记住：** 默认一切皆服务端组件；哪里需要"响应用户"，哪里才写 `'use client'` 变成客户端组件。
 
 | 判定 | Server Component（默认） | Client Component（`'use client'`） |
 |---|---|---|
@@ -32,7 +60,31 @@
 
 ### RSC 为什么不能 useState？
 
-一句话：**没有执行环境。** 服务端组件只在服务器上执行一次——执行完就把 HTML 送给浏览器，然后这个组件实例就不存在了。`useState` 存的状态需要"某个东西持续活着"来记住它并响应变化，但浏览器里根本没有这份组件的 JS 在跑（它没被发送，也不该被发送），服务器上也没有用户正在点击。所以 Hook 体系整体与 RSC 不兼容——不是 React 没实现，是物理上无处安放。需要状态，就在那个局部立一块"客户端岛"。
+> **一句话记住：** 服务端组件执行完就消失，没人"持续活着"记住状态——useState 物理上无处安放。
+
+先想一个反直觉的事实：这个组件只在服务器上跑一次，跑完就没了——那 state 存给谁看？
+
+一句话：**没有执行环境。**
+
+- 服务端组件只在服务器上执行一次：执行完就把 HTML 送给浏览器，然后这个组件实例就不存在了。
+- `useState` 存的状态需要"某个东西持续活着"来记住它并响应变化。
+- 但浏览器里根本没有这份组件的 JS 在跑（它没被发送，也不该被发送），服务器上也没有用户正在点击。
+
+所以 Hook 体系整体与 RSC 不兼容——不是 React 没实现，是物理上无处安放。
+
+需要状态，就在那个局部立一块"客户端岛"。
+
+**图：服务端与客户端组件的边界**
+
+```mermaid
+flowchart TD
+    A["page.tsx 服务端组件<br/>async 组件可直接 await 数据"] -->|"import"| B["LikeButton<br/>use client 声明水合边界"]
+    A -->|"import"| C["lib/data.ts 服务端模块<br/>密钥·数据库 不进 bundle"]
+    B -->|"只能接收可序列化 props"| D["客户端世界<br/>state·hooks·事件全可用"]
+    C -.->|"客户端组件 import 它：构建报错"| D
+    B -.->|"不能反向 import 服务端模块"| C
+    E["loading.tsx Suspense 骨架<br/>数据未就绪时流式下发"] -.->|自动包住| A
+```
 
 ### App Router 文件约定表
 
@@ -53,7 +105,13 @@
 
 ### 与第 3 课 react-router 的对比
 
-react-router 回答的是"URL 变了该显示哪个组件"——它是运行时配置，路由表写在 JS 里，首次加载仍然要把整个应用（含所有路由的代码）拉下来。App Router 回答的是"URL 对应哪份**服务器资产**"——文件即路由，每个 `page.tsx` 是独立的服务端渲染单元，访问 `/blog` 不需要下载 `/about` 的任何代码；切路由时 Next 向服务器要新的 RSC payload，而不是在浏览器里换组件。两套东西不冲突：理解 react-router 的嵌套/Outlet，迁移到 layout 嵌套时是直译关系。
+两套路由回答的问题不一样。
+
+react-router 回答的是"URL 变了该显示哪个组件"——它是运行时配置，路由表写在 JS 里，首次加载仍然要把整个应用（含所有路由的代码）拉下来。
+
+App Router 回答的是"URL 对应哪份**服务器资产**"——文件即路由，每个 `page.tsx` 是独立的服务端渲染单元，访问 `/blog` 不需要下载 `/about` 的任何代码；切路由时 Next 向服务器要新的 RSC payload，而不是在浏览器里换组件。
+
+两套东西不冲突：理解 react-router 的嵌套/Outlet，迁移到 layout 嵌套时是直译关系。
 
 ## 动手试一试
 
@@ -76,7 +134,12 @@ react-router 回答的是"URL 变了该显示哪个组件"——它是运行时�
 3. `loading.tsx` 和自己手写 `<Suspense fallback>` 是什么关系？
 4. 一个页面 90% 是文章正文、10% 是点赞按钮，用 RSC 方案时浏览器要下载多少组件的 JS？
 
-**答案**：1. 能；因为 RSC 真的在服务器上执行，await 数据源发生在 Node 里，浏览器只收结果；SPA 代码全在浏览器，没有服务器提前跑组件。2. 声明"从本文件起进入客户端 bundle"的水合边界；不能，只能通过可序列化的 props 接收数据。3. Next 自动把它包成同级 page 的 `<Suspense fallback>`，是语法糖。4. 只有 LikeButton 一个客户端组件（连同它的依赖）进 bundle，正文是零 JS 的 HTML。
+**答案**：
+
+1. 能。因为 RSC 真的在服务器上执行，await 数据源发生在 Node 里，浏览器只收结果；SPA 代码全在浏览器，没有服务器提前跑组件。
+2. 声明"从本文件起进入客户端 bundle"的水合边界；不能，只能通过可序列化的 props 接收数据。
+3. Next 自动把它包成同级 page 的 `<Suspense fallback>`，是语法糖。
+4. 只有 LikeButton 一个客户端组件（连同它的依赖）进 bundle，正文是零 JS 的 HTML。
 
 ## 下一课预告
 

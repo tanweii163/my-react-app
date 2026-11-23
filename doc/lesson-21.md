@@ -4,10 +4,10 @@
 
 完成本课后，你应该能够：
 
-1. 说清楚 TypeScript 的本质——JS + 一层只在编译时存在的类型：运行时被剥得干干净净，程序不会因此变慢；同时认清 Vite 的分工：**它负责编译 TS（剥类型），但从不检查类型**，类型错误只在编辑器和 `npx tsc --noEmit` 里报；
-2. 会用 interface 给组件 props 立合同：必选属性、可选属性（`?`）、联合字面量类型（`'success' | 'warning' | 'error'`）、解构默认值，并能一句话说清 interface 和 type 怎么选；
-3. 会给 React 事件处理器标类型（`ChangeEvent` / `FormEvent` / `MouseEvent`），知道"内联箭头函数自动推断、抽出的函数必须手标"这条分工，以及泛型参数为什么必须是元素类型；
-4. 会给 Hooks 写泛型：`useState<User | null>(null)`、`useRef<HTMLInputElement>(null)`，理解为什么 `useState(null)` 必须显式写、联合类型如何把判空从"自觉"变成"强制"；
+1. 说清楚 TypeScript 的本质——JS + 一层只在编译时存在的类型：运行时被剥得干干净净，程序不会因此变慢。同时认清 Vite 的分工：**它负责编译 TS（剥类型），但从不检查类型**，类型错误只在编辑器和 `npx tsc --noEmit` 里报；
+2. 会用 interface 给组件 props 立合同：必选属性、可选属性（`?`）、联合字面量类型（`'success' | 'warning' | 'error'`）、解构默认值。并能一句话说清 interface 和 type 怎么选；
+3. 会给 React 事件处理器标类型（`ChangeEvent` / `FormEvent` / `MouseEvent`）。知道"内联箭头函数自动推断、抽出的函数必须手标"这条分工，以及泛型参数为什么必须是元素类型；
+4. 会给 Hooks 写泛型：`useState<User | null>(null)`、`useRef<HTMLInputElement>(null)`。理解为什么 `useState(null)` 必须显式写、联合类型如何把判空从"自觉"变成"强制"；
 5. 能落地一套渐进迁移策略：真实项目从 `.jsx` 逐文件改 `.tsx`，strict 从第一天就开，而不是"停服三个月全量重写"。
 
 本课对应的示例代码：
@@ -21,16 +21,43 @@
 
 ### 类型是"编译时的合同"，运行时不存在
 
+> **一句话记住：** 类型只活在编译时，打包时被全部剥掉——Vite 只删类型、从不查错。
+
+为什么先讲这个？因为不知道类型会被剥掉，你就分不清"页面跑得起来"和"代码写对了"是两回事。
+
 TypeScript 不改变 JS 的运行方式：`.tsx` 文件交给浏览器前，esbuild 把所有类型标注剥掉，产出的就是普通 JS。这带来两个推论：
 
 1. **类型零运行时成本**——类型多了不会让页面变慢，也永远别指望"运行时按类型分支"（`typeof` 检查的是运行时值，不是 TS 类型）；
-2. **Vite 不做类型检查**——esbuild 转译只删类型、不看对错，`label` 拼成 `lebale` 页面照样跑。类型检查是另外两个角色的活：**编辑器**（写代码时的红色波浪线，体验最好）和 **`npx tsc --noEmit`**（不产出文件、只当检查器用，CI 的关卡）。开发流程是"编辑器实时提示 + 提交前 tsc 把关"，Vite 自顾自编译，两边互不知道对方存在。
+2. **Vite 不做类型检查**——esbuild 转译只删类型、不看对错，`label` 拼成 `lebale` 页面照样跑。
 
-所以本课的正确学习姿势：源文件里的类型要看，编辑器里的红线要信，页面"跑得起来"不代表类型写对了。
+类型检查是另外两个角色的活：
+
+- **编辑器**：写代码时的红色波浪线，体验最好；
+- **`npx tsc --noEmit`**：不产出文件、只当检查器用，是 CI 的关卡。
+
+开发流程是"编辑器实时提示 + 提交前 tsc 把关"。Vite 自顾自编译，两边互不知道对方存在。
+
+所以本课的正确学习姿势：**源文件里的类型要看，编辑器里的红线要信，页面"跑得起来"不代表类型写对了。**
+
+**图：类型检查的分工——Vite 只删不查**
+
+```mermaid
+flowchart TD
+    A["你写 .tsx<br/>带类型标注"] --> B["esbuild / Vite 转译<br/>只剥类型 · 不检查"]
+    A --> C["编辑器 TS Server<br/>实时红线 + 提示"]
+    A --> D["npx tsc --noEmit<br/>CI / 提交前把关"]
+    B --> E["普通 JS 交给浏览器<br/>类型错误照样能跑"]
+    C --> F["拼错 variant / 漏传 label<br/>写代码当下就发现"]
+    D --> F
+    E -.->|"页面对 ≠ 类型对"| F
+```
+
 
 ### props 类型化：合同写在 interface 里
 
-props 是组件对外的承诺，类型化的第一步就是把承诺写成合同：
+> **一句话记住：** interface 是组件对外的 props 合同——拼错、漏传，编译期当场拦截。
+
+props 是组件对外的承诺。类型化的第一步，就是把承诺写成合同：
 
 ```tsx
 interface BadgeProps {
@@ -48,11 +75,28 @@ function Badge({ label, variant = 'success', size = 'md' }: BadgeProps) { ... }
 - **联合字面量类型是"枚举值"的廉价解**：`variant` 的类型不是 `string` 而是三个具体字符串的联合。拼错一个字母（`'sucess'`）、传一个没定义的值（`'info'`），编辑器立刻红线——这类 bug 在 JS 里要等"样式悄悄不对"才发现；
 - **类型标注的位置**：给整个参数对象标（`({ label }: BadgeProps)`），不是给每个解构变量挨个标。
 
-**interface vs type 一句选型**：描述对象形状用 `interface`（可被 extends/implements、报错信息友好），需要联合类型、映射、条件变形等"类型运算"时用 `type`（`type ID = number | string` 这种联合没法用 interface 表达）。团队统一其中一种风格比选哪种更重要。
+**interface vs type 一句选型**：描述对象形状用 `interface`（可被 extends/implements、报错信息友好）。
+
+需要"类型运算"（联合类型、映射、条件变形）时用 `type`——`type ID = number | string` 这种联合没法用 interface 表达。**团队统一其中一种风格比选哪种更重要。**
+
+**图：类型沿 props 流动，联合类型逼出判空**
+
+```mermaid
+flowchart LR
+    A["调用方传 props<br/>label · variant · size"] --> B["interface BadgeProps<br/>编译期核对合同"]
+    B -->|"拼错 / 漏传<br/>此处编译报错"| C["❌ 拦截在编译期"]
+    B -->|"合法"| D["组件收到带类型的 props"]
+    E["useState&lt;User | null&gt;(null)"] --> F{"user 可能为 null"}
+    F -->|"先判空收窄"| G["user.name ✅"]
+    F -->|"直接访问"| H["❌ 对象可能为 null<br/>运行时崩溃提前暴露"]
+```
+
 
 ### 事件类型速查表
 
-React 的 SyntheticEvent 按家族分类，泛型参数填"事件发生在哪种元素上"——这一步不是仪式感：`e.target` 的静态类型是 `EventTarget`（所有元素的祖先，没有 `.value`），只有把泛型参数标成具体元素，`.value`、`.checked`、`.clientX` 这些元素专属属性的提示和检查才生效。
+> **一句话记住：** 事件类型 = 事件家族 + 元素类型，标对了 `e.target.value` 才有提示。
+
+React 的 SyntheticEvent 按家族分类。泛型参数填"事件发生在哪种元素上"——这一步不是仪式感：`e.target` 的静态类型是 `EventTarget`（所有元素的祖先，没有 `.value`），只有把泛型参数标成具体元素，`.value`、`.checked`、`.clientX` 这些元素专属属性的提示和检查才生效。
 
 | 场景 | 类型 | 常用属性 |
 |---|---|---|
@@ -64,11 +108,16 @@ React 的 SyntheticEvent 按家族分类，泛型参数填"事件发生在哪种
 | 键盘按键 | `KeyboardEvent<HTMLInputElement>` | `e.key / e.code` |
 | 聚焦/失焦 | `FocusEvent<HTMLInputElement>` | `e.target.value`（relatedTarget 少用） |
 
-分工铁律：**内联箭头函数不用标**（`onChange={(e) => setName(e.target.value)}` 里 `e` 的类型由位置自动推断）；**抽成独立函数必须手标**（推断上下文没了，strict 模式下不标的 `e` 是隐式 `any`，直接报错）。
+分工铁律：
+
+- **内联箭头函数不用标**（`onChange={(e) => setName(e.target.value)}` 里 `e` 的类型由位置自动推断）；
+- **抽成独立函数必须手标**（推断上下文没了，strict 模式下不标的 `e` 是隐式 `any`，直接报错）。
 
 ### 泛型：useState / useRef / 泛型组件
 
-**useState** 大多数时候不用写泛型（初始值就能推断：`useState('')` 是 string）；必须显式写的两个场景：
+> **一句话记住：** 初始值推不出完整类型就得手写泛型——联合类型还附赠编译期判空。
+
+先看什么时候需要泛型。**useState** 大多数时候不用写（初始值就能推断：`useState('')` 是 string）；必须显式写的有两个场景：
 
 ```tsx
 const [user, setUser] = useState<User | null>(null)
@@ -79,7 +128,7 @@ const [items, setItems] = useState<Item[]>([])
 // 初始值是空数组时，元素类型推断不出来，显式写防止被推成 never[]。
 ```
 
-联合类型还带来一份礼物：`user` 的类型是 `User | null`，直接 `user.name` 编译不过（"对象可能为 null"），必须先判空收窄——JS 时代最常见的 `Cannot read properties of null`，在这里被提前到编译期。
+联合类型还带来一份礼物：`user` 的类型是 `User | null`，直接 `user.name` 编译不过（"对象可能为 null"），必须先判空收窄。**JS 时代最常见的 `Cannot read properties of null`，在这里被提前到编译期。**
 
 **useRef** 同理，两种常用写法：
 
@@ -101,15 +150,31 @@ interface GenericListProps<T extends Item> {
 function GenericList<T extends Item>({ items, renderItem }: GenericListProps<T>) { ... }
 ```
 
-`T` 由喂进来的数据自动推断；`extends Item` 是约束——没有约束，组件里写 `item.id` 会红线（裸的 `T` "可能没有 id"），**约束越准，组件内部越敢用字段**。`renderItem` 回调是 render props 套路：组件管遍历/key/空态（要复用的），调用方管每项画成什么样（要定制的）。喂词表、喂学员表，组件一行不改。
+`T` 由喂进来的数据自动推断；`extends Item` 是约束——没有约束，组件里写 `item.id` 会红线（裸的 `T` "可能没有 id"），**约束越准，组件内部越敢用字段**。
+
+`renderItem` 回调是 render props 套路：
+
+- 组件管遍历/key/空态（要复用的）；
+- 调用方管每项画成什么样（要定制的）。
+
+喂词表、喂学员表，组件一行不改。
 
 ### 为什么 strict 模式（以及为什么第一天就开）
 
-`strict: true` 是一组检查的总开关，最要命也最有价值的是 `strictNullChecks`：`null`/`undefined` 不再"什么类型都能塞进去"，必须显式写进类型（`User | null`）并判空收窄。其余成员（`noImplicitAny`、`noImplicitThis`、`alwaysStrict` 等）把"不写类型就隐式放过"的口子全部堵上。
+> **一句话记住：** strict 从第一天就开——类型债务越晚还成本翻几倍。
 
-**第一天就开**的理由是经济学的：类型债务和 CSS 一样只会越欠越多。开着 strict 写新代码，每个类型都是"边写边确认"的；事后补，每个类型都是"考古后填表"，成本翻几倍。真实项目的痛点（`undefined is not a function`、字段拼错、重构改漏一处）大多属于"值的形状和想象不符"，这正是 strict 全天候盯着的东西。代价只是前期多写标注——而且是越写越少的：多数类型靠推断自动产生，手标的只有 props、函数签名和边界处。
+`strict: true` 是一组检查的总开关，最要命也最有价值的是 `strictNullChecks`：`null`/`undefined` 不再"什么类型都能塞进去"，必须显式写进类型（`User | null`）并判空收窄。其余成员把"不写类型就隐式放过"的口子全部堵上（`noImplicitAny`、`noImplicitThis`、`alwaysStrict` 等）。
+
+**第一天就开**的理由是经济学的：类型债务和 CSS 一样只会越欠越多。
+
+- 开着 strict 写新代码：每个类型都是"边写边确认"的；
+- 事后补：每个类型都是"考古后填表"，成本翻几倍。
+
+真实项目的痛点（`undefined is not a function`、字段拼错、重构改漏一处）大多属于"值的形状和想象不符"——这正是 strict 全天候盯着的东西。代价只是前期多写标注，而且是越写越少的：**多数类型靠推断自动产生，手标的只有 props、函数签名和边界处。**
 
 ### 渐进迁移策略：从 .jsx 逐步改 .tsx
+
+> **一句话记住：** 逐文件迁移——新代码全 TS，旧代码顺着改动分期还债。
 
 真实项目几乎没人"停服重写"，通行做法是**逐文件迁移，新债不欠、旧债分期**：
 
@@ -119,6 +184,20 @@ function GenericList<T extends Item>({ items, renderItem }: GenericListProps<T>)
 4. **自底向上**：先迁工具函数、数据模型（纯 TS，无 JSX，最便宜），再迁叶子组件，最后迁页面容器——被依赖者先有类型，依赖它的文件迁移时提示才齐全；
 5. **`any` 是缓冲区不是终点**：一时标不准的地方允许 `any`/`// @ts-expect-error` 过渡，但要留 TODO 和清理计划，别让"暂时的 any"变成永久免检通行证；
 6. **注意保护边界**：`.tsx` 组件被 `.jsx` 文件调用时，**调用方传的 props 不受检查**（本课页面就是活例子）——迁完组件要迁调用方，"最后一公里"没走完只是半保护状态。
+
+**图：渐进迁移的六步路线**
+
+```mermaid
+flowchart TD
+    A["tsconfig + allowJs<br/>JS / TS 共存编译"] --> B["新代码一律 .tsx"]
+    B --> C{"要改哪个存量文件？"}
+    C -->|"高频改动"| D["改 .tsx → 补类型<br/>tsc --noEmit 清零"]
+    C -->|"冷文件"| E["不动 · 不亏"]
+    D --> F{"调用方还是 .jsx？"}
+    F -->|"是"| G["半保护状态<br/>迁调用方才闭环"]
+    A -.->|"标不准处"| H["any 过渡<br/>留 TODO 清理计划"]
+```
+
 
 ## 代码导读
 
@@ -150,7 +229,9 @@ function GenericList<T extends Item>({ items, renderItem }: GenericListProps<T>)
 
 ## 动手试一试
 
-1. **给 Badge 加第四种语义**：新需求"info（蓝色提示）"。动手改 `Badge.tsx`：variant 联合类型加 `'info'`、`lesson21.css` 加 `.l21-badge--info` 配色——然后回页面随便用。体会两件事：TS 项目里"加一个枚举值"是编译器指路式的修改（漏改哪里它会提醒）；如果先只改页面用 `variant="info"` 而不改类型，`tsc` 立刻报错——合同生效的体感。
+1. **给 Badge 加第四种语义**：新需求"info（蓝色提示）"。动手改 `Badge.tsx`：variant 联合类型加 `'info'`、`lesson21.css` 加 `.l21-badge--info` 配色——然后回页面随便用。体会两件事：
+   - TS 项目里"加一个枚举值"是编译器指路式的修改（漏改哪里它会提醒）；
+   - 如果先只改页面用 `variant="info"` 而不改类型，`tsc` 立刻报错——合同生效的体感。
 2. **把 GenericList 用在第三种数据上**：在页面里加一组课程数据 `{ id: 3, title: '...', minutes: 25 }`，用 `GenericList` 渲染成"标题 + 时长徽章"。全程只写调用方代码，组件一行不改——这就是"复用列表逻辑不限类型"。再试试喂一个**没有 id 字段**的对象数组，看编辑器/tsc 报什么错（提示：约束在这时咬人）。
 3. **体验迁移第一步**：把 `Lesson21.jsx` 复制一份改名为 `Lesson21.tsx`（不接路由，不影响现有页面），给页内的 `WORDS`/`STUDENTS` 补上 interface、给 `useState` 补联合类型泛型，跑 `npx tsc --noEmit` 清零。做完你就掌握了"逐文件迁移"的完整手感：改扩展名 → 补类型 → tsc 把关。
 
@@ -178,4 +259,6 @@ function GenericList<T extends Item>({ items, renderItem }: GenericListProps<T>)
 
 ## 下一课预告
 
-第 22 课：组件设计模式。类型的地基打完，回到组件本身的结构问题：哪些逻辑该抽成自定义 Hook、哪些该做成组合组件、容器组件和展示组件怎么分工。你已经偷偷见过一半答案了——本课 GenericList 的 renderItem 就是"render props"模式的现场演示。
+第 22 课：组件设计模式。类型的地基打完，回到组件本身的结构问题——哪些逻辑该抽成自定义 Hook、哪些该做成组合组件、容器组件和展示组件怎么分工。
+
+你已经偷偷见过一半答案了：本课 GenericList 的 renderItem 就是"render props"模式的现场演示。

@@ -33,6 +33,18 @@ const inputRef = useRef(null)
 inputRef.current.focus()        // 直接命令 DOM —— state 做不到这种事
 ```
 
+**图：改 state vs 改 ref——谁触发重渲染**
+
+```mermaid
+flowchart TD
+    subgraph ST["useState"]
+    S1["setXxx 更新"] -->|"触发"| S2["重渲染 界面更新"]
+    end
+    subgraph RF["useRef"]
+    R1["改 box.current"] -->|"React 不追踪"| R2["无渲染 界面不变"]
+    end
+```
+
 ## 代码导读
 
 ### `src/components/lesson5/FocusDemo.jsx`
@@ -64,6 +76,16 @@ inputRef.current.focus()        // 直接命令 DOM —— state 做不到这种
 | 代码量   | 多（每个 input 一套 state） | 少                    |
 
 选择建议：需要实时校验/联动/限制输入 → 受控；简单的"提交时读一次" → 非受控更快。
+
+**图：受控 vs 非受控——按键时的两条路径**
+
+```mermaid
+flowchart TD
+    K["用户按键"] -->|"受控"| OC["onChange 更新 state"]
+    OC --> RR["重渲染 value 回写输入框"]
+    K -->|"非受控"| DOM["DOM 自己改值 React 无感知"]
+    DOM --> SUB["提交时 ref 或 FormData 读值"]
+```
 
 - React 19 小知识：函数组件可以直接把 `ref` 当 prop 接收，不再需要 `forwardRef` 包裹，本课只用到 DOM ref，知道即可。
 

@@ -24,6 +24,10 @@
 
 ### utility-first vs 语义 class：两种哲学
 
+> **一句话记住：** utility 把样式写在标签上不用起名，代价是类名串长；语义类保住标签干净，代价是两文件跳转。
+
+先看一个新组件到手时的第一个问题：样式写在哪？两种哲学给出了相反的答案：
+
 | 维度 | utility-first（Tailwind） | 语义 class（App.css 的 `.card`） |
 |---|---|---|
 | 一段样式住在哪 | JSX 的 class 字符串里，就地可见 | 独立 CSS 文件，结构与样式分离 |
@@ -39,9 +43,11 @@
 
 ### 与 preflight 的恩怨：为什么本项目禁用 base 层
 
+> **一句话记住：** preflight 是全局重置，CSS 不随路由卸载，一导就永久污染全站——本项目只用粒度导入 theme + utilities。
+
 Tailwind v4 的 `@import "tailwindcss"` 等于三层打包：**theme**（设计令牌 CSS 变量）+ **base**（preflight 全局重置）+ **utilities**（工具类）。preflight 会对所有元素做 reset：去掉 heading 的 margin、按钮变透明、border 归零……单看每一项都"很现代"，但它作用于**全页面**。
 
-关键在项目事实：**CSS 一旦被浏览器加载，就不随路由卸载**。你只要打开过 /lesson/34，preflight 就永久驻留——之后访问 /lesson/1–30，App.css 里精心写的 `.card`、`.top-nav` 会被全局重置搅得面目全非（按钮背景被清空、间距消失）。这是"一个路由的样式决定权，污染全站"的典型事故。
+关键在项目事实：**CSS 一旦被浏览器加载，就不随路由卸载**。你只要打开过 /lesson/34，preflight 就永久驻留。之后访问 /lesson/1–30，App.css 里精心写的 `.card`、`.top-nav` 会被全局重置搅得面目全非（按钮背景被清空、间距消失）。这是"一个路由的样式决定权，污染全站"的典型事故。
 
 所以本课的 `tw.css` 用粒度导入只取安全的两层：
 
@@ -51,11 +57,27 @@ Tailwind v4 的 `@import "tailwindcss"` 等于三层打包：**theme**（设计�
 @import "tailwindcss/utilities.css";
 ```
 
-theme 分层导入即可（只声明 CSS 变量、无冲突面）；utilities.css **不带 layer() 导入**是本项目实测得出的坑：`index.css` 里有未分层的全局 `button { background: #eef1f7 }`，而层叠规则是"未分层样式永远赢过分层样式"（与导入顺序无关）——utilities 一旦放进 layer 就会全线被老全局样式击败（按钮变灰、颜色丢失）。保持 utilities 未分层才能赢回优先级。
+theme 分层导入即可（只声明 CSS 变量、无冲突面）。utilities.css **不带 layer() 导入**是本项目实测得出的坑：`index.css` 里有未分层的全局 `button { background: #eef1f7 }`，而层叠规则是"未分层样式永远赢过分层样式"（与导入顺序无关）——utilities 一旦放进 layer 就会全线被老全局样式击败（按钮变灰、颜色丢失）。保持 utilities 未分层才能赢回优先级。
+
+**图：Tailwind v4 三层导入与本项目取舍**
+
+```mermaid
+flowchart TD
+    A["@import tailwindcss"] --> T["theme 设计令牌"]
+    A --> B["base preflight 全局重置"]
+    A --> U["utilities 工具类"]
+    T -->|"✅ 安全, 分层导入"| K["本课 tw.css"]
+    B -->|"❌ 永久污染全站"| X["坚决不导"]
+    U -->|"✅ 按需生效, 不带 layer"| K
+```
 
 验证方法：打开 /lesson/2，卡片背景若和原来一样，说明防线守住了。
 
 ### 响应式与状态前缀速查
+
+> **一句话记住：** 视口前缀管浏览器窗口，容器前缀管自己盒子；卡片级响应式几乎总是后者更对。
+
+同一个类名，怎么只在一部状态下生效？靠前缀：
 
 | 前缀 | 含义 | 备注 |
 |---|---|---|
@@ -67,9 +89,23 @@ theme 分层导入即可（只声明 CSS 变量、无冲突面）；utilities.cs
 
 记忆锚点：视口前缀管"整个浏览器窗口"，容器前缀管"我这个盒子"。组件库/卡片场景几乎总是后者更对——组件该对自己所处的容器负责，而不是对窗口负责。
 
+**图：视口前缀与容器前缀的参照对象**
+
+```mermaid
+flowchart TD
+    Q["响应式类名命中判断"] --> SM["sm: / md: / lg:"]
+    Q --> AT["@md: / @lg:"]
+    SM --> V["看浏览器视口宽度"]
+    AT --> C["看最近 @container 祖先盒子"]
+    V --> W["窗口宽时不变化, 卡片场景易误判"]
+    C --> W2["卡片级响应式的正解"]
+```
+
 ### JIT 静态扫描原理：为什么模板拼字符串丢样式
 
-Tailwind v4 不再扫描配置文件清单，而是**扫描所有源码文件，把出现的完整类名字面量收集起来**，只为这些类生成 CSS（JIT，just-in-time）。由此推出一条铁律：
+> **一句话记住：** 类名必须以完整字面量出现在源码里，Tailwind 才生成它的 CSS；动态取值用映射表。
+
+Tailwind v4 不再扫描配置文件清单，而是**扫描所有源码文件，把出现的完整类名字面量收集起来**，只为这些类生成 CSS（JIT，just-in-time，边扫描边按需生成）。由此推出一条铁律：
 
 > **类名必须以完整字面量出现在源码里，Tailwind 才会生成它的 CSS。**
 
@@ -79,7 +115,9 @@ Tailwind v4 不再扫描配置文件清单，而是**扫描所有源码文件，
 const cls = `bg-${color}-600` // 源码里不存在 "bg-emerald-600" 这个完整词
 ```
 
-扫描器按整类名匹配，模板拼接出来的名字在源码里从未整体出现 → CSS 没生成 → 运行时类名正确、样式缺失，是**静默失败**，最难排查。正解是维护完整类名的映射表：
+扫描器按整类名匹配。模板拼接出来的名字在源码里从未整体出现 → CSS 没生成 → 运行时类名正确、样式缺失。这是**静默失败**，最难排查。
+
+正解是维护完整类名的映射表：
 
 ```jsx
 const BUTTON_COLORS = {
@@ -89,6 +127,17 @@ const BUTTON_COLORS = {
 ```
 
 每个值都是完整字面量，扫描必然命中；代码里也一眼看清所有合法取值。`UtilityPatterns.jsx` 的第 ④ 组演示就是这个正解的现场版。
+
+**图：JIT 静态扫描流程**
+
+```mermaid
+flowchart TD
+    A["保存源码文件"] --> B["Tailwind 扫描全部源码"]
+    B --> C["收集完整类名字面量"]
+    C --> D{"模板拼接的类名存在吗?"}
+    D -->|"完整字面量命中"| E["生成对应原子 CSS"]
+    D -->|"只有拼接片段"| F["不生成 CSS, 静默失败"]
+```
 
 ## 代码导读
 
@@ -119,7 +168,12 @@ const BUTTON_COLORS = {
 3. 下面代码的按钮为什么没有背景色？给出两种修复方案：`<button className={`bg-${color}-600`} />`
 4. `sm:flex-row` 和 `@md:flex-row` 分别以什么为参照？给"卡片头部在窄卡片里变横排"选哪个，为什么？
 
-**答案**：1. theme + base + utilities；base（preflight）是全局重置，CSS 不随路由卸载会永久污染其他页，theme 与 utilities 都是按需生效的安全层。2. `.hover\:bg-indigo-700:hover { background-color: var(--color-indigo-700) }`；区别是状态规则与默认规则写在同一个类名字符串里，不用维护独立 CSS 规则。3. 源码里不存在 `bg-emerald-600` 等完整类名字面量，JIT 静态扫描没收集到、没生成 CSS；修复：改用完整类名映射表，或把所有可能的完整类名以任何形式写进源码（推荐前者）。4. `sm:` 看浏览器视口宽度，`@md:` 看最近 `@container` 祖先盒子的 inline-size；选 `@md:`——组件应对容器负责，视口前缀在宽窗口下无法体现窄卡片场景。
+**答案**：
+
+1. theme + base + utilities。base（preflight）是全局重置，CSS 不随路由卸载会永久污染其他页；theme 与 utilities 都是按需生效的安全层，所以本项目只导这两层。
+2. `.hover\:bg-indigo-700:hover { background-color: var(--color-indigo-700) }`。区别是状态规则与默认规则写在同一个类名字符串里，不用维护独立 CSS 规则。
+3. 源码里不存在 `bg-emerald-600` 等完整类名字面量，JIT 静态扫描没收集到、没生成 CSS。修复：改用完整类名映射表，或把所有可能的完整类名以任何形式写进源码（推荐前者）。
+4. `sm:` 看浏览器视口宽度，`@md:` 看最近 `@container` 祖先盒子的 inline-size。选 `@md:`——组件应对容器负责，视口前缀在宽窗口下无法体现窄卡片场景。
 
 ## 下一课预告
 

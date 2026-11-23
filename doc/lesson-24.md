@@ -21,6 +21,8 @@
 
 ### 构建发生了什么：从源码到 dist/
 
+> **一句话记住：** 部署就是把 dist/ 放上任意静态服务器——线上没有 HMR，只有纯静态文件。
+
 `npm run build`（本项目即 `vite build`）依次做五件事：
 
 1. **转译**：JSX 编译成普通 JS、现代语法按需降级，浏览器拿到的是它认识的代码；
@@ -29,7 +31,34 @@
 4. **内容 hash**：产物文件名带上内容指纹（`index-DWEM_vww.js`），内容变名字才变；
 5. **拷贝与汇总**：`public/` 目录原样拷入（本项目的 `favicon.svg`、`users.json`），一切写进 `dist/`。
 
-**部署 = 把 `dist/` 原样放到任意静态文件服务器上**，仅此而已。dev server 的所有便利在线上都不存在：没有 HMR、没有依赖预构建、没有代理，也没有"刷新就能看到最新代码"——线上世界是纯静态的。
+**部署 = 把 `dist/` 原样放到任意静态文件服务器上**，仅此而已。
+
+dev server 的所有便利在线上都不存在：
+
+- 没有 HMR；
+- 没有依赖预构建；
+- 没有代理；
+- 也没有"刷新就能看到最新代码"——线上世界是纯静态的。
+
+**图：dev 模式 vs 生产构建两条流水线**
+
+```mermaid
+flowchart TD
+    SRC["源码 .jsx / .css"] --> DEV
+    subgraph DEV["npm run dev · 开发工作台"]
+        D1["按需编译 · 只转译"] --> D2["dev server"]
+        D2 --> D3["HMR 热更新<br/>改一处刷新一块"]
+        D2 --> P["/api 代理到后端"]
+    end
+    SRC --> BUILD
+    subgraph BUILD["npm run build · 产品形态"]
+        B1["转译 JSX"] --> B2["tree-shaking 摇树"]
+        B2 --> B3["压缩混淆"] --> B4["内容 hash 命名"]
+        B4 --> B5["dist/ 静态产物"]
+    end
+    B5 --> HOST["静态托管上线<br/>无 HMR · 无代理"]
+```
+
 
 ### 实测记录：本项目 dist/ 清单与 gzip 前后大小
 
@@ -42,23 +71,34 @@
 | `dist/assets/HeavyChart-CU_NBqNY.js` | 1.45 kB | 0.85 kB | **第 12 课 LazySection 动态 import() 拆出的 chunk** |
 | `dist/assets/index-DWEM_vww.js` | 545.99 kB | 175.02 kB | 其余全部 JS：源码 + 所有依赖 |
 
-`ls -lh dist/assets`：total 560K（HeavyChart 1.5K、index js 534K、css 17K）；`dist/` 根目录另有 `favicon.svg`（9.3K）、`index.html`（462B）、`users.json`（227B，`public/` 原样拷贝）。这份清单给了四个一手结论：
+`ls -lh dist/assets`：total 560K（HeavyChart 1.5K、index js 534K、css 17K）；`dist/` 根目录另有 `favicon.svg`（9.3K）、`index.html`（462B）、`users.json`（227B，`public/` 原样拷贝）。
+
+这份清单给了四个一手结论：
 
 - **摇树与压缩的威力**：546 kB → gzip 175 kB，传输量降约 68%（CSS 降约 76%）——gzip/brotli 通常再降 60–80%，`npm run build` 输出末列的 gzip 数字就是线上实际传输量的近似；
 - **你在第 12 课已经亲手拆过 chunk**：`HeavyChart-*.js` 就是 `React.lazy(() => import('./HeavyChart'))` 的产物，只有滚到那一节才会下载；
 - **默认没有 vendors chunk**：所有第三方库和业务代码合在 `index-*.js` 一个文件里。Vite 不主动拆 vendors，要靠构建配置（`manualChunks` 等）显式拆——拆与不拆的权衡见下文 Lighthouse 一节；
 - **构建器给了一条警告**："Some chunks are larger than 500 kB after minification"。这不是错误，是提示：首屏 JS 有 546 kB，慢网络下首屏时间会被拖长。
 
-构建后跑 `npx vite preview`（本地起一个"只伺服 dist/ 的静态服务器"）实测：`GET /lesson/24` 返回 200（462 字节的 index.html——**深链接直接命中，SPA 回退生效**）、`GET /assets/index-DWEM_vww.js` 返回 200 且 `content-type: text/javascript`。验证完即关闭 preview。注意 preview 验的是**构建产物**，和 dev server 是两个世界。
+构建后跑 `npx vite preview`（本地起一个"只伺服 dist/ 的静态服务器"）实测：
+
+- `GET /lesson/24` 返回 200（462 字节的 index.html——**深链接直接命中，SPA 回退生效**）；
+- `GET /assets/index-DWEM_vww.js` 返回 200 且 `content-type: text/javascript`。
+
+验证完即关闭 preview。注意 preview 验的是**构建产物**，和 dev server 是两个世界。
 
 ### 环境变量：import.meta.env 与 VITE_ 前缀
+
+> **一句话记住：** VITE_ 是"可以公开"的白名单——只有带前缀的变量才进前端包。
 
 `import.meta.env` 是 Vite 注入的**构建时常量对象**：dev server 启动或打包那一刻，`.env` 文件里的值被直接替换进代码——不是运行时读文件。两个推论：
 
 - 改了 `.env` 必须**重启 dev server / 重新 build**，热更新不感知它（本课第一易错点）；
 - dev 和 build 读的是不同的模式（mode）：`npm run dev` 是 `development`，`npm run build` 是 `production`。页面上 `MODE/DEV/PROD` 三个值在你切到构建产物时会翻转。
 
-**VITE_ 前缀规则**：只有 `VITE_` 开头的变量会被暴露给前端代码。这是白名单防御，不是加密——`.env` 里往往混着数据库密码、支付密钥这类服务器变量，若全量注入，任何人 F12 一句 `console.log(import.meta.env)` 就全拿走了。Vite 的原则：**不主动进包，显式标 VITE_ 才放行**。反过来，`import.meta.env.DATABASE_PASSWORD` 在白名单里查不到，打包时直接替换成 `undefined`——它从未进入前端包，也不是"藏起来了"，而是根本没进去（EnvDemo 的表格里可以亲眼看到这个 undefined）。
+**VITE_ 前缀规则**：只有 `VITE_` 开头的变量会被暴露给前端代码。这是白名单防御，不是加密——`.env` 里往往混着数据库密码、支付密钥这类服务器变量，若全量注入，任何人 F12 一句 `console.log(import.meta.env)` 就全拿走了。
+
+Vite 的原则：**不主动进包，显式标 VITE_ 才放行。** 反过来，`import.meta.env.DATABASE_PASSWORD` 在白名单里查不到，打包时直接替换成 `undefined`——它从未进入前端包，也不是"藏起来了"，而是根本没进去（EnvDemo 的表格里可以亲眼看到这个 undefined）。
 
 **`.env` 家族优先级**（从低到高，后者覆盖前者）：
 
@@ -70,11 +110,15 @@
 | `.env.development` | 仅 `npm run dev` | 开发专用 |
 | `.env.[mode].local` | 对应模式 | 模式 + 本机，优先级最高 |
 
-所以"`VITE_API_URL` 在开发指向 localhost、上线指向真域名"的标准做法是：`.env.development` 和 `.env.production` 各写一份同名变量，代码一行不改。本项目没建 `.env`，`VITE_COURSE_NAME || 'React 学习课程'` 的 `||` 兜底正是为"配了/没配"两种环境共存设计的——读环境变量的惯例永远是"读 + 兜底"，别假设它一定存在。
+所以"`VITE_API_URL` 在开发指向 localhost、上线指向真域名"的标准做法是：`.env.development` 和 `.env.production` 各写一份同名变量，代码一行不改。
+
+本项目没建 `.env`，`VITE_COURSE_NAME || 'React 学习课程'` 的 `||` 兜底正是为"配了/没配"两种环境共存设计的——读环境变量的惯例永远是"读 + 兜底"，别假设它一定存在。
 
 四个内置变量不用配置：`MODE`（模式名）、`DEV`/`PROD`（布尔开关，适合写 `if (import.meta.env.PROD)` 接入监控）、`BASE_URL`（部署基路径，GitHub Pages 子路径部署时要关心它）。
 
 ### 环境变量安全红线：密钥永不进前端
+
+> **一句话记住：** 前端包里没有秘密——密钥只存服务器，前端经自己的后端取数据。
 
 把这条单独一节，因为它值得当纪律背下来：
 
@@ -84,15 +128,55 @@
 - 判断口诀：前缀是 `VITE_` 的值必然公开（它就在你能下载的 JS 里）；不带前缀的值前端拿不到（打包时被替换成 undefined）——**越权信任任何一边都是事故**；
 - 一旦某个真实密钥被提交进 Git 历史，处理方式是**立刻吊销轮换**（revoke & rotate），删文件、改历史都是次要的。
 
+**图：VITE_ 白名单的进出规则**
+
+```mermaid
+flowchart TD
+    E[".env 文件里的变量"] --> Q{"有 VITE_ 前缀？"}
+    Q -->|"是 · 声明可公开"| R["打包时替换进前端 JS<br/>全世界可下载 · 海报测试"]
+    Q -->|"否 · 服务器机密"| U["打包替换成 undefined<br/>根本没进前端包 ✅"]
+    R --> W["真密钥放这里 = 事故<br/>立刻吊销轮换"]
+    U --> S["密钥只存服务器环境<br/>前端经自己的后端取数据"]
+```
+
+
 ### 产物四件事：chunk、摇树、source map、压缩（BundleTips 的展开）
 
-- **hash 指纹与缓存**：`index-DWEM_vww.js` 里的 hash 是内容指纹。浏览器缓存按"文件名"命中：下次部署如果依赖没升级，这部分代码 hash 不变 → 缓存继续命中；改动过的文件 hash 变 → 自动失效。这就是静态资源敢设一年强缓存的机制，而 `index.html` 不带 hash，必须保证每次都能拿到新的；
-- **chunk 从哪来**：入口代码 → index chunk；`React.lazy(() => import('./X'))` 的每个动态导入点 → 单独 chunk、访问到才下载（本项目的 `HeavyChart-*.js` 就是活证据）；第三方依赖体量大时，用构建配置拆出 vendors chunk，让"业务代码天天变"与"依赖几乎不变"分开缓存。分包不是为了文件好看，是为了**缓存命中**和**首屏只加载首屏要用的代码**；
-- **tree-shaking 生效条件**：ESM 的 import/export 是编译期可分析的静态结构，打包器顺着引用图删掉没人用的导出。三个条件缺一不可：① 源码写 `import/export` 而不是 `require`（CommonJS 是运行时调用，没法静态分析）；② 具名导入而不是整包默认导入（`import { debounce } from 'lodash-es'` vs `import _ from 'lodash'`）；③ 依赖包自身"可摇"（`package.json` 的 `sideEffects` 声明干净）。页面上的翻牌小测把这四种情况做成了可亲手验证的题；
-- **source map**：一张"压缩后位置 → 源码位置"的映射表。产物是压缩混淆过的（变量成 `a/b/c`、空行全无），线上报错堆栈人读不懂；有 map，浏览器 DevTools 和错误监控平台才能把堆栈还原成你写的源码。Vite build **默认不生成** map（`build.sourcemap: true` 打开）——map 等于把未压缩源码公开发布，商业项目常选"线上不出 map、错误监控平台私有上传"两全；
-- **gzip/brotli**：一句话——产物是纯文本，托管平台默认压缩传输、浏览器解压执行，实测本项目 JS 降 68%、CSS 降 76%。
+> **一句话记住：** hash 管缓存、chunk 管按需、source map 管排错、gzip 管传输。
+
+四件产物知识逐个说。
+
+**hash 指纹与缓存**：`index-DWEM_vww.js` 里的 hash 是内容指纹。浏览器缓存按"文件名"命中——下次部署如果依赖没升级，这部分代码 hash 不变 → 缓存继续命中，改动过的文件 hash 变 → 自动失效。
+
+**这就是静态资源敢设一年强缓存的机制**，而 `index.html` 不带 hash，必须保证每次都能拿到新的。
+
+**chunk 从哪来**：
+
+- 入口代码 → index chunk；
+- `React.lazy(() => import('./X'))` 的每个动态导入点 → 单独 chunk、访问到才下载（本项目的 `HeavyChart-*.js` 就是活证据）；
+- 第三方依赖体量大时，用构建配置拆出 vendors chunk，让"业务代码天天变"与"依赖几乎不变"分开缓存。
+
+分包不是为了文件好看，是为了**缓存命中**和**首屏只加载首屏要用的代码**。
+
+**tree-shaking 生效条件**：ESM 的 import/export 是编译期可分析的静态结构，打包器顺着引用图删掉没人用的导出。三个条件缺一不可：
+
+1. 源码写 `import/export` 而不是 `require`（CommonJS 是运行时调用，没法静态分析）；
+2. 具名导入而不是整包默认导入（`import { debounce } from 'lodash-es'` vs `import _ from 'lodash'`）；
+3. 依赖包自身"可摇"（`package.json` 的 `sideEffects` 声明干净）。
+
+页面上的翻牌小测把这四种情况做成了可亲手验证的题。
+
+**source map**：一张"压缩后位置 → 源码位置"的映射表。产物是压缩混淆过的（变量成 `a/b/c`、空行全无），线上报错堆栈人读不懂。
+
+有 map，浏览器 DevTools 和错误监控平台才能把堆栈还原成你写的源码。
+
+Vite build **默认不生成** map（`build.sourcemap: true` 打开）——map 等于把未压缩源码公开发布，商业项目常选"线上不出 map、错误监控平台私有上传"两全。
+
+**gzip/brotli**：一句话——产物是纯文本，托管平台默认压缩传输、浏览器解压执行，实测本项目 JS 降 68%、CSS 降 76%。
 
 ### 静态托管与 SPA 回退：最后一公里
+
+> **一句话记住：** 回退规则把任何路径都变成 index.html 的别名，让 Router 有机会接管 URL。
 
 三种主流静态托管，共同三要素是**构建命令 `npm run build`、产物目录 `dist`、SPA 回退规则**，差异只在第三项：
 
@@ -108,7 +192,22 @@
 2. 没有回退规则 → 返回 404，React 根本没机会启动，用户看到错误页；
 3. 有回退规则 → 返回 `index.html` → JS 加载后 `BrowserRouter` 读取 URL `/lesson/24`，路由表渲染 `Lesson24`。
 
-一句话：**回退规则把"任何路径"都变成 index.html 的别名，让 Router 有机会接管 URL**。不想配规则的替代品是 `HashRouter`（URL 变 `#/lesson/24`，服务器看到的永远是 `/`，天生无此问题），代价是 URL 难看、SEO 与锚点受限——现代方案首选 BrowserRouter + 回退。
+一句话：**回退规则把"任何路径"都变成 index.html 的别名，让 Router 有机会接管 URL**。
+
+不想配规则的替代品是 `HashRouter`（URL 变 `#/lesson/24`，服务器看到的永远是 `/`，天生无此问题），代价是 URL 难看、SEO 与锚点受限——现代方案首选 BrowserRouter + 回退。
+
+**图：深链接请求的两种命运**
+
+```mermaid
+flowchart TD
+    A["用户直接打开 /lesson/24"] --> B["静态服务器在 dist/ 找文件"]
+    B --> C{"存在 lesson/24 这个文件？"}
+    C -->|"不存在 · 无回退规则"| D["返回 404<br/>React 根本没启动 ❌"]
+    C -->|"不存在 · 有回退规则"| E["返回 index.html"]
+    E --> F["JS 加载后 BrowserRouter<br/>读取 URL 渲染 Lesson24 ✅"]
+    B --> H["HashRouter：# 后不发服务器<br/>永远请求 / · 天生无此问题"]
+```
+
 
 ## 完整部署 checklist
 
@@ -144,7 +243,7 @@ Lighthouse（Chrome DevTools → Lighthouse 面板，选 Mobile + Performance）
 4. **可访问性顺手做**：本项目已有 `aria-valuenow` 进度条（第 20 课）、`scope="row"` 表头（本课 EnvDemo）——新代码保持这个习惯，比事后补成本低；
 5. **图片与字体**：本课实测产物里没有图片资源（favicon.svg 仅 9.3K），这项暂无债可还；将来引入截图/插图时再谈懒加载与格式选择。
 
-先建基线（记下当前五项分数），每做一项优化重跑对比——性能工作是"测量 → 改 → 再测量"，不测量就优化是猜。
+先建基线（记下当前五项分数），每做一项优化重跑对比——**性能工作是"测量 → 改 → 再测量"，不测量就优化是猜。**
 
 ## 代码导读
 

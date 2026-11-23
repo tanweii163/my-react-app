@@ -14,6 +14,8 @@
 
 ### 状态放在哪：自上而下的判断法
 
+> **一句话记住：** 谁用谁改决定 state 放哪：单组件留本地，多组件提到公共父组件，算出来的不进 state。
+
 拿到需求先列状态，再问三个问题：
 
 - 谁渲染它？（只一个组件 → 留在本地）
@@ -32,9 +34,30 @@
 | 过滤后的列表 `visibleNotes` | 渲染时计算 | 派生数据不进 state |
 | 字数统计 | 渲染时计算 | 同上 |
 
+**图：学习笔记应用的组件树与数据流**
+
+```mermaid
+flowchart TD
+    L["Lesson10 页面<br/>editingId / keyword"] --> T["工具栏<br/>搜索框 + 新建按钮"]
+    L --> N["NoteList<br/>visibleNotes 派生"]
+    L --> E["NoteEditor<br/>title/content 草稿本地"]
+    N --> N2["NoteItem × N<br/>React.memo"]
+    subgraph H["自定义 Hook 层"]
+        U["useNotes<br/>reducer + localStorage"] --> L
+    end
+    subgraph D["防抖层"]
+        B["useDebounce<br/>keyword → debouncedKeyword"] --> L
+    end
+    E -->|"onBlur 保存"| U
+    T -->|"add"| U
+    N2 -->|"remove / setEditingId"| L
+```
+
 ### reducer：把"怎么改"集中管理
 
-状态转移方式固定为几种时，useReducer 比 useState 更清晰：
+> **一句话记住：** 一组数据的增删改方式固定时，全部收进 reducer，写法不可变。
+
+一组数据的增删改方式固定为几种时，useReducer 比 useState 更清晰——所有"怎么改"集中在一处，组件只发意图。
 
 ```js
 // 不可变三连：新增用展开、修改用 map、删除用 filter
@@ -45,7 +68,9 @@ case REMOVE_NOTE: return notes.filter(n => n.id !== action.id)
 
 ### 自定义 hook：一段可复用的状态逻辑
 
-名字以 `use` 开头的函数，内部调用其他 hook：
+> **一句话记住：** 自定义 hook 是逻辑打包机：组件拿走"意图"（add/update/remove），不用知道机制。
+
+组件经常需要一段"状态 + 副作用"的组合逻辑，又不想在每个组件里抄一遍。自定义 hook（名字以 `use` 开头的函数，内部调用其他 hook）就是干这个的：
 
 ```js
 function useNotes() {
@@ -55,9 +80,13 @@ function useNotes() {
 }
 ```
 
-组件不需要知道 action 的结构——hook 暴露的是"意图"（add/update/remove），不是"机制"（dispatch）。
+**组件不需要知道 action 的结构——hook 暴露的是"意图"（add/update/remove），不是"机制"（dispatch）。**
 
 ### 防抖：定时器清理的典型应用
+
+> **一句话记住：** 值一变就 clearTimeout 上一个定时器，停够 300ms 才真正生效。
+
+搜索框每敲一个键就过滤一次太浪费——我们希望"停止输入后一段时间才行动"。防抖（debounce：每次新输入都重置计时器）正是靠第 2 课的清理函数实现的：
 
 ```js
 function useDebounce(value, delay) {
@@ -72,6 +101,22 @@ function useDebounce(value, delay) {
 
 连续输入时前一个定时器总被清理，只有停止输入满 300ms 才真正更新——第 2 课"清理函数"的直接复用。
 
+**图：防抖的时序——每次输入取消上一次定时器**
+
+```mermaid
+sequenceDiagram
+    participant U as 用户输入
+    participant D as useDebounce
+    participant S as setDebounced
+    U->>D: 输入 "h"
+    D->>D: 开定时器 300ms
+    U->>D: 输入 "he"
+    D->>D: 清理旧定时器，重开 300ms
+    U->>D: 停止输入
+    D->>S: 300ms 后触发
+    S->>D: debounced = "he"…最新值
+```
+
 ## 代码导读
 
 ### `src/components/lesson10/notesReducer.js` —— 状态转移的"规则手册"
@@ -83,7 +128,7 @@ function useDebounce(value, delay) {
 ### `src/components/lesson10/useNotes.js` —— reducer + 持久化的打包
 
 - `useReducer(notesReducer, undefined, loadInitial)`：第三个参数是**惰性初始化函数**，只在首次挂载调用一次，读 localStorage（IO）不进渲染体；
-- 读取发生在初始化，写入发生在 effect（依赖 `[notes]`）——"加载不是 effect、保存才是"这个方向别搞反；
+- 读取发生在初始化，写入发生在 effect（依赖 `[notes]`）——**"加载不是 effect、保存才是"这个方向别搞反**；
 - 返回值是 `add/update/remove` 三个意图明确的方法，`Date.now()` 当 id 的细节被封装在里面。
 
 ### `src/components/lesson10/NoteList.jsx` —— 列表 + memo

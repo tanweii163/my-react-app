@@ -22,16 +22,44 @@
 
 ### 动画的分工：React 管起止，CSS 管过程
 
-最常见的新手错误是用 JS 播动画：`setInterval` 每 16ms 把 opacity 加 0.05。这条路的代价清单：主线程被占满（掉帧全责）、每次改 style 都触发样式计算、组件重渲染和动画计时互相打架、代码量是 CSS 版的三倍。正确分工是：
+> **一句话记住：** React 只负责换 class，中间每一帧全归 CSS 的 transition。
+
+最常见的新手错误是用 JS 播动画：`setInterval` 每 16ms 把 opacity 加 0.05。这条路的代价清单：
+
+- 主线程被占满（掉帧全责）；
+- 每次改 style 都触发样式计算；
+- 组件重渲染和动画计时互相打架；
+- 代码量是 CSS 版的三倍。
+
+正确分工是：
 
 ```
 React：setState(visible: false → true) → className 换了   ← 只负责"从哪个状态到哪个状态"
 浏览器：transition: opacity .35s → 自动插值 0.03/0.37/0.81… ← 中间每一帧全归它
 ```
 
-推论一：**动画的"进度"不是 state**，别为它建变量——想读中间值用 `getComputedStyle`。推论二：transition 的触发条件是"计算值发生变化"，所以**元素首次挂载不会播 transition**（没有旧值可比）——想要首次进场动画，要么先渲染成隐藏态再翻转（本课 FadeToggle 的做法），要么用 `@keyframes` animation（挂在元素上就播，不依赖旧值）。
+两个推论：
+
+1. **动画的"进度"不是 state**，别为它建变量——想读中间值用 `getComputedStyle`；
+2. transition 的触发条件是"计算值发生变化"，所以**元素首次挂载不会播 transition**（没有旧值可比）——想要首次进场动画，要么先渲染成隐藏态再翻转（本课 FadeToggle 的做法），要么用 `@keyframes` animation（挂在元素上就播，不依赖旧值）。
+
+**图：一个元素的动画状态机（含退场难题）**
+
+```mermaid
+stateDiagram-v2
+    [*] --> 隐藏态: 首挂载，无旧值不播过渡
+    隐藏态 --> 进入过渡: state 翻转换 class
+    进入过渡 --> 在场: CSS 插值完成
+    在场 --> 退场中: 标记退场加 leaving 类
+    退场中 --> 卸载: 定时到点真删数据
+    卸载 --> [*]: React 瞬间移除 DOM
+    note right of 卸载: 一步到位删除会让元素当场消失，动画没有载体
+```
+
 
 ### CSS 动画优先于 JS 动画库：选型理由
+
+> **一句话记住：** 默认答案是 CSS；CSS 做不了的（中断、弹簧、编排）才上库。
 
 真实项目里动画需求的默认答案应该是 **CSS（transition + @keyframes）**，理由按权重排：
 
@@ -40,9 +68,18 @@ React：setState(visible: false → true) → className 换了   ← 只负责"�
 3. **没有依赖成本**：动画库（framer-motion 约 30KB+ gzip）是常驻体积；CSS 方案删掉几行规则就没了；
 4. **与 React 的边界干净**：React 只管 state，CSS 只管过程，两者不需要新的心智模型；动画库则引入自己的组件树（`<AnimatePresence>` 等）和生命周期概念。
 
-那什么时候才轮到库？需求超出"两态过渡"的能力范围时：**中断重定向**（动画播到一半反向）、**基于物理的弹簧动画**、**复杂编排**（多元素错峰入场）、以及退场动画的自动管理（见下一节）。先确认 CSS 做不了，再上库——选型顺序是"CSS → CSS+delayedUnmount → 库 → View Transitions"，跳级就是过度设计。
+那什么时候才轮到库？需求超出"两态过渡"的能力范围时：
+
+- **中断重定向**（动画播到一半反向）；
+- **基于物理的弹簧动画**；
+- **复杂编排**（多元素错峰入场）；
+- **退场动画的自动管理**（见下一节）。
+
+先确认 CSS 做不了，再上库——选型顺序是"CSS → CSS+delayedUnmount → 库 → View Transitions"，跳级就是过度设计。
 
 ### 退场动画的难题与 delayedUnmount
+
+> **一句话记住：** React 卸载是瞬间的——想播退场动画，就得把"真删"推迟到动画播完。
 
 进入过渡便宜，退场动画贵，根因在一行话里：
 
@@ -58,28 +95,56 @@ delayedUnmount 模式的解法是**推迟卸载，给动画让路**——把一�
   → 第二次更新：items.filter(...)         ← 这时才真删，React 这一刻才卸载元素
 ```
 
-配套三件套（漏一个都是真 bug）：**防重入**（退场中屏蔽重复点击，否则定时器叠加）；**时长对齐**（JS 的 400ms 和 CSS 的 0.4s 是两个时钟，`ExitAnimation.jsx` 顶部常量与 `lesson23.css` 里的大字注释互相提醒）；**卸载清场**（`useEffect` cleanup 里 `clearTimeout`，防止组件死后回调再 setState）。
+配套三件套（漏一个都是真 bug）：
+
+- **防重入**：退场中屏蔽重复点击，否则定时器叠加；
+- **时长对齐**：JS 的 400ms 和 CSS 的 0.4s 是两个时钟，`ExitAnimation.jsx` 顶部常量与 `lesson23.css` 里的大字注释互相提醒；
+- **卸载清场**：`useEffect` cleanup 里 `clearTimeout`，防止组件死后回调再 setState。
 
 更精确的变体是监听 `transitionend` 事件再卸载（动画一结束立刻删，不用人肉对齐时钟），但要处理事件不触发的边缘情况（元素中途 `display:none`、transition 被打断、标签页后台化丢事件），通常配一个兜底定时器——简单场景 `setTimeout` 足够。
 
 ### View Transitions：浏览器替你做"前后两帧"
 
+> **一句话记住：** 浏览器拍新旧两张快照做过渡，你只需 flushSync 保证"拍新照时 DOM 已变"。
+
 `document.startViewTransition(callback)` 的流程：拍旧照 → 执行 callback（DOM 真正变化）→ 拍新照 → 在两张快照之间做交叉淡入/变形。动画发生在**快照（伪元素）**上，真实 DOM 只切换一次——所以天然流畅，也不用你写任何补间代码。
 
 三个必须知道的实践点（都写在 `ViewTransitionDemo.jsx` 的注释里）：
 
-- **特性检测 + 降级**：`typeof document.startViewTransition === 'function'` 不成立就直接 setState——功能一模一样，只是瞬间切换。动画是渐进增强，永远不能是功能前提；
+- **特性检测 + 降级**：`typeof document.startViewTransition === 'function'` 不成立就直接 setState——功能一模一样，只是瞬间切换。**动画是渐进增强，永远不能是功能前提**；
 - **flushSync 不可缺**：callback 靠"返回时 DOM 已变"拍新照，而 React 的 setState 是异步批处理——不包 `flushSync`，浏览器拍到的"新照"还是旧画面，动画等于白做；
 - **`view-transition-name` 收窄范围**：默认动画整页根快照（整页一起淡切）；给面板设 `view-transition-name: l23-panel` 后只有该元素的新旧照片参与变换。同一名字同一时刻只能属于一个元素。
 
+**图：startViewTransition 的快照时序**
+
+```mermaid
+sequenceDiagram
+    participant JS as handleSwitch
+    participant B as 浏览器
+    participant R as React + flushSync
+
+    JS->>B: 先做特性检测与降级判断
+    JS->>B: startViewTransition(callback)
+    B->>B: 拍旧照（快照伪元素）
+    B->>R: 执行 callback
+    R->>R: flushSync 强制同步渲染<br/>DOM 真正切换
+    B->>B: 拍新照
+    B->>B: 新旧快照间交叉淡入
+    B-->>JS: finished Promise 落定
+    Note over B,R: 不包 flushSync → 拍到的新照仍是旧画面
+```
+
+
 ### prefers-reduced-motion：两道闸门
+
+> **一句话记住：** CSS 动画用 `@media` 闸，快照动画用 `matchMedia` 闸——缺一不可。
 
 系统开启"减少动态效果"的用户（常见于前庭功能障碍，位移动画会引发眩晕）必须得到尊重，这是无障碍硬要求。两类动画要用不同的闸门：
 
 - **CSS 动画**：`lesson23.css` 末尾的 `@media (prefers-reduced-motion: reduce)` 一处声明掐掉本课全部 transition/animation——属性值瞬间跳终态。若代码依赖 `transitionend` 驱动下一步，用 `0.01ms` 而不是 `none`（时长不为零，事件仍会立即触发）；
 - **View Transitions 快照动画**：不走你的 CSS，得在 JS 里 `matchMedia('(prefers-reduced-motion: reduce)').matches` 命中后主动跳过 `startViewTransition`。
 
-两道闸缺一不可：只写 CSS 的降级，快照动画照播；只写 JS 的降级，普通 transition 照播。
+**两道闸缺一不可**：只写 CSS 的降级，快照动画照播；只写 JS 的降级，普通 transition 照播。
 
 ## 代码导读
 
@@ -123,11 +188,31 @@ delayedUnmount 模式的解法是**推迟卸载，给动画让路**——把一�
 | 兼容性 | 全浏览器（原理是基础 API） | 全浏览器 | Chrome/Edge 111+、Safari 18+，Firefox 较晚——必须特性检测降级 |
 | 适用场景 | 一两处退场需求，不想为此引库 | 大量进出场编排、复杂序列动画、要弹簧物理选 framer-motion | 整块 UI 的切换（面板、路由级视图），不在乎老浏览器降级 |
 
-**选型口诀**：一处退场手写 delayedUnmount；成片的进出场编排上库（本课程按约定**不安装** react-transition-group，知道它的 `<CSSTransition in timeout unmountOnExit>` 解决的就是本课手写的那个问题即可）；现代浏览器场景的整块切换用 View Transitions 并做好降级。三条路的成本与能力边界，就是"CSS 做不了的时候再升级"这条选型链的展开。
+**选型口诀**：三条路的成本与能力边界，就是"CSS 做不了的时候再升级"这条选型链的展开。
+
+- 一处退场：手写 delayedUnmount；
+- 成片的进出场编排：上库（本课程按约定**不安装** react-transition-group，知道它的 `<CSSTransition in timeout unmountOnExit>` 解决的就是本课手写的那个问题即可）；
+- 现代浏览器场景的整块切换：用 View Transitions 并做好降级。
 
 ## 性能注意
 
-1. **只动 transform/opacity（本课铁律）**。浏览器渲染一帧的流水线是 layout → paint → composite：改 `width/top/margin` 要重跑前两步（每帧重排 + 重绘，元素越多越卡）；改 `transform/opacity` 直接跳到 composite（合成器线程搬图层，主线程零参与）。验证方法：DevTools → Performance 面板录一段，动画期间应该看不到紫色（Layout）和绿色（Paint）的条；
+1. **只动 transform/opacity（本课铁律）**。浏览器渲染一帧的流水线是 layout → paint → composite：
+   - 改 `width/top/margin` 要重跑前两步（每帧重排 + 重绘，元素越多越卡）；
+   - 改 `transform/opacity` 直接跳到 composite（合成器线程搬图层，主线程零参与）。
+   - 验证方法：DevTools → Performance 面板录一段，动画期间应该看不到紫色（Layout）和绿色（Paint）的条。
+
+**图：transform 与 width 在渲染流水线上的分岔**
+
+```mermaid
+flowchart LR
+    A["每帧改样式"] --> B{"改哪个属性？"}
+    B -->|"transform / opacity"| C["跳过 layout 与 paint<br/>合成器线程搬图层"]
+    C --> D["GPU · 主线程零参与<br/>稳 60fps ✅"]
+    B -->|"width / top / margin"| E["重算几何 layout"]
+    E --> F["逐像素重绘 paint"]
+    F --> G["再合成 composite<br/>每帧占主线程 ❌"]
+```
+
 2. **别用 `will-change` 当预防针**。它提醒浏览器"这个元素要动了，提前建图层"——图层是显存，全站滥加等于逼浏览器维护几百个图层，内存暴涨反而掉帧。只加给确实在动画的元素，动画结束移除；
 3. **动画期间别在 JS 里干重活**。transition 播放的 400ms 里，如果同一时刻 React 在渲染大列表或发请求解析数据，主线程阻塞照样卡（合成器只管图层，新帧的内容还得主线程出）。动画是演出，别在演出时搬家具；
 4. **长列表删除的"补位收缩"别硬做**。退场中的元素还占着格子（本课的已知取舍），补位收缩发生在卸载瞬间——如果想让补位也丝滑，动画 height 会逐帧重排（违反铁律），正确姿势是 FLIP（First-Last-Invert-Play：记前后位置，用 transform 反演补差），它把位移交给合成器；

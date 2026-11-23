@@ -14,6 +14,8 @@
 
 ### props 钻透
 
+> **一句话记住：** 数据只有一个组件要用，却逼着中间每层当快递员转手——层级越深越容易漏传、越难改。
+
 props 只能从父传给子。如果一个数据（比如主题）诞生在 App，真正的使用者却在三层之下，中间每层都必须「收下 → 再转手」：
 
 ```jsx
@@ -25,7 +27,18 @@ function Page({ theme }) {
 
 中间层被无关数据污染：改字段名要动一串文件，层级越深越容易漏传。**这不是某个人的代码写得差，是「父传子」这一条通道天生扛不住跨层需求。**
 
+**图：props 钻透——数据被中间层逐层转手**
+
+```mermaid
+flowchart TD
+    A["App 持有 theme"] -->|"传 theme"| B["Page 不用它 只转发"]
+    B -->|"传 theme"| C["Sidebar 不用它 只转发"]
+    C -->|"传 theme"| D["DeepChild 真正使用者"]
+```
+
 ### context 三步走
+
+> **一句话记住：** 造频道 → Provider 广播 → `useContext` 收听，中间层从此隐身。
 
 context 给组件树开了一条「广播频道」：数据从 Provider 发出，势力范围内的任意后代直接收听，中间层全程隐身。
 
@@ -42,7 +55,18 @@ const ThemeContext = createContext(null)
 const { theme } = useContext(ThemeContext)
 ```
 
+**图：context 广播——Provider 直达，中间层隐身**
+
+```mermaid
+flowchart TD
+    P["ThemeProvider 持有并广播 value"] -->|"频道直达"| X["Panel 完全不知情"]
+    P -->|"频道直达"| D["DeepChild useContext 直接收听"]
+    X --> DP["渲染 children"]
+```
+
 ### 封装成 Provider 组件 + 自定义 hook
+
+> **一句话记住：** 数据所有者和防御检查各封装一次：`XxxProvider` 管存与广播，`useXxx` 管读与抛错。
 
 实际项目里很少直接裸用这三个 API，标准姿势是：
 
@@ -60,6 +84,8 @@ export function useTheme() {
 宁可抛错也别悄悄降级——错误堆栈直接指到出错的组件，比「页面颜色莫名不对」好查一百倍。
 
 ### 适合与不适合
+
+> **一句话记住：** 只放全局、低频的数据；高频局部数据放进 context 会拖垮一大片组件。
 
 | 适合放 context | 不适合放 context |
 | --- | --- |

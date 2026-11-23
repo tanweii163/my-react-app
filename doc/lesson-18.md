@@ -21,6 +21,8 @@
 
 ### Context 是"广播频道"，不是"仓库"
 
+> **一句话记住：** Context 只负责把值送到后代手里（依赖注入）；状态管理、按需订阅、持久化都不归它管。
+
 第 6 课我们用 Context 把主题从顶层送到了三层之下，中间层彻底隐身。但要分清两件事：
 
 | | Context 擅长的 | Context 不擅长的 |
@@ -29,11 +31,13 @@
 | 订阅粒度 | `value` 一变，**所有**消费者都重渲染（value 每次渲染都是新对象） | —— |
 | 持久化 | 自己写 `useEffect` + `localStorage` | —— |
 
-所以"要不要上状态库"的判断标准不是"跨层传值"——跨层传值 Context 干得很好；真正的信号是：这块状态**多个互不相干的组件要读写、还要持久化**（比如本课的"15 课学习进度"）。这时 Context 会让每个读它的组件都跟着每次更新重渲染，持久化还得手写——该换库了。
+所以"要不要上状态库"的判断标准不是"跨层传值"——跨层传值 Context 干得很好。真正的信号是：这块状态**多个互不相干的组件要读写、还要持久化**（比如本课的"15 课学习进度"）。这时 Context 会让每个读它的组件都跟着每次更新重渲染，持久化还得手写——该换库了。
 
 ### zustand：import 即用的全局 store
 
-zustand 的 store 没有"势力范围"的概念：
+> **一句话记住：** create() 一造好 store 就存在于模块里，没有 Provider——任何组件 import 即用。
+
+先感受一下它和 Context 最大的用法差异：store 没有"势力范围"的概念，不需要包 Provider。
 
 ```js
 const useStore = create((set, get) => ({
@@ -54,6 +58,10 @@ useStore.getState().inc()                // 组件外/事件回调里也能改
 
 ### 选择器：zustand 省渲染的阀门
 
+> **一句话记住：** 每个订阅者重跑一遍选择器，结果没变（Object.is 相等）就不重渲染——按需订阅的阀门。
+
+为什么 zustand 比 Context 省渲染？答案全在选择器（selector）上。
+
 ```js
 const doneCount = useStore(selectDoneCount) // (s) => 统计完成的数量
 ```
@@ -65,13 +73,44 @@ store 任何地方变了，zustand 会把**每个订阅者的选择器重新跑�
 
 对比 Context：`value` 是每次渲染新建的对象，消费者没有"挑一块"的能力——一变全体重渲染。这是两者性能差异的根源。用法提示：选择器在模块顶层定义成具名函数再导出（本课的 `selectDoneCount`），比组件里写内联箭头函数更稳定、可测试。
 
+**图：一次勾选在 zustand 里的数据流**
+
+```mermaid
+flowchart TD
+    A["勾选框点击"] --> B["getState().toggle(id)<br/>不可变更新"]
+    B --> C["set 生成新 progress"]
+    C --> D["zustand 通知全部订阅者<br/>重跑各自的选择器"]
+    D --> E["列表订阅 progress<br/>引用变了 → 重渲染"]
+    D --> F["统计条订阅 doneCount<br/>数字没变 → 不重渲染"]
+    C --> G["persist 自动写入<br/>localStorage"]
+```
+
 ### persist：一行配置的持久化
+
+> **一句话记住：** persist 中间件一行配置——改动自动写 localStorage，挂载自动读回。
+
+手写持久化要在 Provider 里写 effect、序列化、容错；persist 把这些活全包了。
 
 ```js
 create(persist((set, get) => ({ ... }), { name: 'lesson18-progress' }))
 ```
 
 中间件包在配置函数外面，`name` 是 localStorage 的键。改动一发生就自动写入，挂载时自动读回——第 6 课的 Context 版想持久化，得自己在 Provider 里写 `useEffect` + 序列化 + 容错，这些活 persist 全包了。**注意**：persist 存的是 JSON，所以 state 里只能放可序列化的东西，actions 必须放在 create 外层配置里（zustand 会自动剥离，但别养成把函数塞进 state 的习惯）。
+
+**图：Context 广播 vs 选择器订阅**
+
+```mermaid
+flowchart LR
+    subgraph CTX["Context：一变全体重渲染"]
+        P1["Provider value"] -->|"广播新对象"| C1["消费者 A"]
+        P1 --> C2["消费者 B<br/>只想透传也要重渲染"]
+        P1 --> C3["消费者 C"]
+    end
+    subgraph ZS["zustand：按需订阅"]
+        S1["store"] -->|"选择器结果<br/>Object.is 相等"| Z1["组件 A 不渲染"]
+        S1 -->|"结果变了"| Z2["组件 B 重渲染"]
+    end
+```
 
 ## 与手写方案对比
 

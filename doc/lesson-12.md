@@ -20,22 +20,49 @@
 
 ### 默认打包：一个 bundle 的代价
 
-Vite 构建时，从入口 `main.jsx` 出发，把静态 `import` 到的所有模块打平、合并成（少数）几个 JS 文件。本项目 14 个课页面全在 `main.jsx` 里静态 import，构建后全在一个主 chunk 里；真实项目再叠加图表、富文本编辑器这类几百 KB 的第三方库，主包轻松上 MB。
+> **一句话记住：** 单 bundle 让用户首屏等全部代码；值得拆的是"首屏用不到、且只有部分用户用到"的代码。
+
+Vite 构建时，从入口 `main.jsx` 出发，把静态 `import` 到的所有模块打平、合并成（少数）几个 JS 文件。
+
+本项目 14 个课页面全在 `main.jsx` 里静态 import，构建后全在一个主 chunk 里；真实项目再叠加图表、富文本编辑器这类几百 KB 的第三方库，主包轻松上 MB。
 
 代价在两处：**下载**（网络传输）和**解析执行**（JS 是要 CPU 跑的）。用户必须等整个 bundle 下载并执行完，才能看到首屏——哪怕其中 80% 的代码这次访问根本不会用到。
 
-判断什么值得拆出去的标准：**首屏用不到、且只有部分用户会用到**的代码。典型候选：重组件（图表/编辑器/地图）、低频页面（设置页、报表页）。反过来说，代码分割**不减少总下载量**，只改变"什么时候下载"——如果一段代码人人首屏都要用，拆出去反而多一次请求、还会让首屏出现 loading 闪烁。
+判断什么值得拆出去的标准：**首屏用不到、且只有部分用户会用到**的代码。典型候选：重组件（图表/编辑器/地图）、低频页面（设置页、报表页）。
+
+反过来说，代码分割**不减少总下载量**，只改变"什么时候下载"——如果一段代码人人首屏都要用，拆出去反而多一次请求、还会让首屏出现 loading 闪烁。
+
+**图：单 bundle 与按路由分包的对比**
+
+```mermaid
+flowchart TD
+    subgraph S1["默认：单 bundle"]
+        A["访问页面"] --> B["下载 + 解析整个主包<br/>含 14 个页面与重组件"]
+        B --> C["首屏才可见"]
+    end
+    subgraph S2["按路由分包"]
+        D["访问页面"] --> E["只下载主包<br/>布局 + 当前页"]
+        E --> F["首屏更快可见"]
+        G["切到别的路由"] --> H["此时才下载该页 chunk"]
+    end
+```
 
 ### 静态 import vs 动态 import()
+
+> **一句话记住：** 静态 import 构建期打进主包；动态 import() 运行时才下载，构建工具为它单独拆 chunk。
 
 ```js
 import HeavyChart from './HeavyChart.jsx' // 静态：构建期就确定依赖，被打进主包
 const mod = await import('./HeavyChart.jsx') // 动态：运行时才发起，构建工具为它单独拆一个 chunk
 ```
 
-`import()` 不是普通函数——它是 ES 标准语法，Vite/Webpack **在构建期扫描它**，把它指向的模块（及其独有依赖）拆成独立的 chunk 文件（文件名带 hash，如 `HeavyChart-abc123.js`），运行时按需下载并返回 Promise。**静态 import 写在模块顶部、必选；动态 import 写在表达式位置、可选。**
+`import()` 不是普通函数——它是 ES 标准语法，Vite/Webpack **在构建期扫描它**，把它指向的模块（及其独有依赖）拆成独立的 chunk 文件（文件名带 hash，如 `HeavyChart-abc123.js`），运行时按需下载并返回 Promise。
+
+**静态 import 写在模块顶部、必选；动态 import 写在表达式位置、可选。**
 
 ### React.lazy：把"下载"推迟到首次渲染
+
+> **一句话记住：** lazy() 只登记零请求；组件第一次渲染时 import() 才执行、chunk 才开始下载。
 
 ```jsx
 import { lazy, Suspense } from 'react'
@@ -57,13 +84,32 @@ const HeavyChart = lazy(() => import('./HeavyChart.jsx'))
 
 下载完成后 React 会记住这个模块：卸载再挂载，直接同步渲染，不再出 fallback——chunk 只下载一次（模块系统缓存），这次加载的开销是一次性的。
 
+**图：lazy + Suspense 从登记到渲染的全过程**
+
+```mermaid
+flowchart TD
+    A["lazy(() => import(...))<br/>仅登记，零请求"] --> B["组件第一次被渲染"]
+    B --> C["import() 执行<br/>chunk 开始下载"]
+    C --> D{"chunk 已到达？"}
+    D -->|"否"| E["渲染暂停<br/>最近 Suspense 显示 fallback"]
+    E --> C
+    D -->|"是"| F["React 重试渲染<br/>真组件替换 fallback"]
+    F --> G["之后卸载再挂载<br/>模块已缓存，直接渲染"]
+```
+
 ### Suspense 接住的是"渲染暂停"，不是错误
 
-首次渲染 lazy 组件时 chunk 还在路上，这次渲染没法完成——React 让它**暂停（suspense）**，找到组件上方**最近的 `<Suspense>`** 渲染它的 `fallback`；Promise resolve 后 React 自动重试渲染，换上真组件，fallback 退场。出场和退场都由 React 管理，你只是声明"等待时显示什么"。
+> **一句话记住：** Suspense 只管"等待"（渲染暂停时显示 fallback），不管"失败"（那要错误边界）。
+
+首次渲染 lazy 组件时 chunk 还在路上，这次渲染没法完成——React 让它**暂停（suspense）**，找到组件上方**最近的 `<Suspense>`** 渲染它的 `fallback`；Promise resolve 后 React 自动重试渲染，换上真组件，fallback 退场。
+
+出场和退场都由 React 管理，你只是声明"等待时显示什么"。
 
 **注意：Suspense 只管"等待"，不管"失败"。** chunk 下载失败（弱网、部署后路径错误）时 Promise reject，渲染抛错——那需要错误边界（第 13 课的 ErrorBoundary）来兜底。
 
 ### fallback 与 loading 状态的区别
+
+> **一句话记住：** loading 是你自己 setState 管的过程；fallback 是 React 在渲染暂停时自动接管的机制。
 
 第 2 课的 fetch 四件套里我们自己管理 `loading`；本课的 fallback 看起来也像"加载中"，但机制完全不同：
 
@@ -75,9 +121,13 @@ const HeavyChart = lazy(() => import('./HeavyChart.jsx'))
 | 能否保留旧内容 | 能——保留旧列表 + 顶部小 loading 是常见做法 | 默认替换子树；要保留旧内容得用 `startTransition`（第 14 课） |
 | 典型场景 | fetch 数据四件套 | `React.lazy` 组件、框架级数据获取 |
 
-一句话：**loading 状态是"你管理的过程"，fallback 是"React 管理的机制"**。两者不冲突——数据请求继续用 loading state（它需要错误处理、重试、保留旧数据这些精细控制），代码拆分交给 lazy + Suspense。
+一句话：**loading 状态是"你管理的过程"，fallback 是"React 管理的机制"**。
+
+两者不冲突——数据请求继续用 loading state（它需要错误处理、重试、保留旧数据这些精细控制），代码拆分交给 lazy + Suspense。
 
 ### 路由级代码分割（收益最大）
+
+> **一句话记住：** 每个路由一个 chunk、用到才下载，是真实项目收益最大的拆分粒度——但收益要算账。
 
 组件级 lazy 适合重组件；真实项目里**拆得最多的是路由**——每个页面一个 chunk，用户访问哪个页面才下载哪个，首屏 bundle 只留真正需要的布局和首页。
 

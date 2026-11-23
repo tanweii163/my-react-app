@@ -1,6 +1,10 @@
 # 第 37 课 · framer-motion 动效库
 
-第 23 课我们用纯 CSS（加一点手写工程）覆盖了大半动效需求，也留下了 CSS 做不了、或要做一堆工程的三件事：**退场动画**、**可中断的手势**、**布局补间**。本课引入动效库 framer-motion，把这三件事降回"声明式 props"，同时守住选型底线——CSS 够用的地方不上库。打开 http://localhost:5173/lesson/37 看讲义。
+第 23 课我们用纯 CSS（加一点手写工程）覆盖了大半动效需求，也留下了三件 CSS 做不了、或要做一堆工程的事：**退场动画**、**可中断的手势**、**布局补间**。
+
+本课引入动效库 framer-motion，把这三件事降回"声明式 props"。同时守住选型底线——CSS 够用的地方不上库。
+
+打开 http://localhost:5173/lesson/37 看讲义。
 
 ## 学习目标
 
@@ -24,6 +28,12 @@
 
 ### 声明式最小单元：initial / animate / transition
 
+> **一句话记住：** 入场动画就是三个 props：从哪开始、到哪结束、怎么走。
+
+为什么要把动画写成 props？CSS 动画写死在 class 里，状态一变就得手动切类名。
+
+framer-motion 让动画值跟着 state 走——数据变，动画自动跟着变。
+
 ```jsx
 <motion.div
   initial={{ opacity: 0, x: -48 }}   // 挂载起点
@@ -38,11 +48,40 @@
 
 ### 手势：whileHover / whileTap
 
-指针交互直接声明在 props 里，替代 `onMouseEnter/Leave` 三件套和 CSS `:hover`。库的核心增量是**中断重定向**：动画播到一半交互反转（快速划过又折返），spring 从当前**位置 + 速度**平滑转向；CSS transition 只能从当前计算值按新曲线重放，手感生硬。经验法则：手势一律配 spring。
+> **一句话记住：** 手势也是 props；spring 记得速度，动画播一半折返也能平滑转向。
+
+上一节让动画自动播，这一节让它听手指的。传统的 hover 效果要写 `onMouseEnter/Leave` 三件套或 CSS `:hover`——手势多了代码就散。framer-motion 把手势直接声明成 props：
+
+库的核心增量是**中断重定向**：动画播到一半交互反转（快速划过又折返），spring 从当前**位置 + 速度**平滑转向。
+
+CSS transition 做不到这一点——它只能从当前计算值按新曲线重放，手感生硬。
+
+经验法则：**手势一律配 spring**。
 
 ### 退场动画：AnimatePresence 与第 23 课手写 delayedUnmount 对照表
 
-第 23 课的根因不变：React 卸载是同步瞬间的，"元素已删"与"动画没播"物理互斥。AnimatePresence 的解法是**接管卸载时机**——发现带 `exit` 的子组件被删时，先扣住不卸载，等退场动画播完才真正移除 DOM。两个方案正面对比：
+> **一句话记住：** AnimatePresence 替你扣住 DOM：等 exit 动画播完才真正卸载。
+
+第 23 课的根因不变：React 卸载是同步瞬间的。"元素已删"与"动画没播"物理互斥。
+
+AnimatePresence 的解法是**接管卸载时机**——发现带 `exit` 的子组件被删时，先扣住不卸载，等退场动画播完才真正移除 DOM。
+
+两个方案正面对比：
+
+**图：AnimatePresence 接管卸载时机**
+
+```mermaid
+sequenceDiagram
+    participant R as React 树
+    participant A as AnimatePresence
+    participant D as 退场中元素
+    R->>A: setItems 删除, 子组件从树移除
+    A->>D: 扣住 DOM 不卸载
+    D->>D: 播 exit 动画
+    D-->>A: 动画结束信号
+    A->>R: 真正移除 DOM
+    R->>R: layout 项自动补位补间
+```
 
 | | ① 手写 delayedUnmount（第 23 课） | ② AnimatePresence + exit（本课） |
 | --- | --- | --- |
@@ -55,15 +94,41 @@
 | 留下项补位 | 已知取舍：补位是瞬间跳变（要 FLIP 才能动画） | `layout` 属性顺带解决：补位自动补间 |
 | 适用场景 | 不想引库的单点退场需求 | 项目已用 framer-motion，或退场需求成片 |
 
-选型口径与第 23 课一致：**一处退场手写够用；成片的进出场编排上库**。本课程装了 framer-motion，所以本课演示统一走库——但你要能说清"库替我写了什么"，delayedUnmount 的手写版仍是理解卸载时机的最好教材。
+选型口径与第 23 课一致：**一处退场手写够用；成片的进出场编排上库**。
+
+本课程装了 framer-motion，所以本课演示统一走库——但你要能说清"库替我写了什么"。
+
+delayedUnmount 的手写版仍是理解卸载时机的最好教材。
 
 ### key 稳定性：AnimatePresence 的硬性前提
 
-AnimatePresence 完全靠**稳定唯一 key** 判断"谁走了"。用数组下标当 key 时，删掉中间一项，后面元素下标集体前移，库会误判"最后一项走了"——错位的元素播退场、真正删的那项瞬间消失。第 5 课的 key 三铁律在这里从"建议"升级为"硬性前提"。同理：同一时刻同一 key 渲染两次必坏。
+> **一句话记住：** AnimatePresence 靠 key 认"谁走了"——key 一错，退场动画张冠李戴。
+
+为什么 key 这个老话题又出现了？因为 AnimatePresence 完全靠**稳定唯一 key** 判断"谁走了"。
+
+用数组下标当 key 时，删掉中间一项，后面元素下标集体前移。
+
+库会误判"最后一项走了"——错位的元素播退场、真正删的那项瞬间消失。
+
+第 5 课的 key 三铁律在这里从"建议"升级为"**硬性前提**"。
+
+同理：同一时刻同一 key 渲染两次必坏。
 
 ### variants vs 内联 props
 
-variants 把命名的动画值收编成对象树，父组件广播状态机（`initial="hidden" animate="show"`），子组件只挂同名 variant 就跟随：
+> **一句话记住：** 单元素动画内联就够；编排和父子联动才用 variants。
+
+多个元素要错峰入场、状态要来回切换时，把动画值一个个写在元素上很快失控。variants（命名的动画值对象树）就是为编排而生：父组件广播状态机（`initial="hidden" animate="show"`），子组件只挂同名 variant 就跟随。
+
+**图：variants 父级广播与错峰编排**
+
+```mermaid
+flowchart TD
+    P["父组件 initial hidden, animate show"] -->|"广播同名 variant"| C1["子项 1 挂 itemVariants"]
+    P -->|"广播"| C2["子项 2"]
+    P -->|"广播"| C3["子项 3"]
+    P -.->|"transition 里 staggerChildren 排队"| S["孩子们间隔 0.15s 依次入场"]
+```
 
 | | 内联 props（initial/animate 写在元素上） | variants |
 | --- | --- | --- |
@@ -76,7 +141,25 @@ variants 把命名的动画值收编成对象树，父组件广播状态机（`i
 
 ### layout / layoutId：FLIP 自动化
 
-`layout` 解决第 23 课铁律的死角——布局变化怎么动画？答案是 FLIP：渲染前后各测一次位置尺寸（First/Last），用 transform 把元素瞬间摆回旧位（Invert），再补间到 0（Play）。全程只有 transform，不逐帧重排——"能动画布局"却不违反合成器铁律，库替你写了对的那一版。
+> **一句话记住：** FLIP = 先摆回旧位再补间——全程只有 transform，布局变化也能动画。
+
+布局变化（换位、展开、收起）怎么动画？CSS 无解，手写要自己测位置、算 transform——这套活有个固定套路叫 FLIP，库把它自动化了。
+
+`layout` 解决第 23 课铁律的死角——布局变化怎么动画？
+
+答案是 FLIP：渲染前后各测一次位置尺寸（First/Last），用 transform 把元素瞬间摆回旧位（Invert），再补间到 0（Play）。
+
+全程只有 transform，不逐帧重排——"能动画布局"却不违反合成器铁律，库替你写了对的那一版。
+
+**图：FLIP 布局补间四步**
+
+```mermaid
+flowchart TD
+    F["First: 记录变化前位置尺寸"] --> L["Last: 渲染后测新位置尺寸"]
+    L --> I["Invert: 用 transform 瞬间摆回旧位"]
+    I --> P["Play: 补间 transform 到 0"]
+    P --> D["全程无逐帧重排, 走合成器"]
+```
 
 - 触发是全自动的：挂了 `layout` 的元素，**任何**导致它布局变化的因素（state 换渲染顺序、className 改宽高、条件渲染变高度）都会被捕捉补间——动画值不在 style 里，这是它与 initial/animate 的本质区别；
 - 子内容拉伸陷阱：默认 layout 连子内容一起缩放（展开时文字被横向拉变形）。只想"位置跟随、自身不变形"的子元素挂 `layout="position"`；
@@ -84,7 +167,9 @@ variants 把命名的动画值收编成对象树，父组件广播状态机（`i
 
 ### bundle 体积代价与 tree-shaking 现状
 
-库不是免费的。本仓库 framer-motion 14.14.0 实测（esbuild 打包，minified + gzip）：
+> **一句话记住：** tree-shaking 有效但地板约 53 KB gzip——动效成片才值得付。
+
+引库之前先问一句：代价是多少？库不是免费的。本仓库 framer-motion 14.14.0 实测（esbuild 打包，minified + gzip）：
 
 | 导入方式 | 体积 |
 | --- | --- |
@@ -101,13 +186,23 @@ variants 把命名的动画值收编成对象树，父组件广播状态机（`i
 
 ### reduced-motion：一行配置与它的边界
 
-第 23 课的无障碍降级要两处手写：CSS 动画在 `@media (prefers-reduced-motion: reduce)` 里掐掉，JS 快照动画自己写闸门。本课的库动画只需页面最外层包一行：
+> **一句话记住：** MotionConfig 一行让库动画尊重系统"减少动态效果"——但它管不到 CSS 动画。
+
+第 23 课的无障碍降级要两处手写：CSS 动画在 `@media (prefers-reduced-motion: reduce)` 里掐掉，JS 快照动画自己写闸门。
+
+本课的库动画只需页面最外层包一行：
 
 ```jsx
 <MotionConfig reducedMotion="user">
 ```
 
-`"user"` = 跟随系统设置：开启"减少动态效果"时，**transform 与 layout 动画自动跳过、直接落终态**（位移动画是眩晕主因），**opacity/颜色动画保留**（褪色不致眩晕）。注意它的边界：MotionConfig **只管库自己的动画**——页面里的纯 CSS 动画仍要 @media 自己拦（见 `lesson23.css`），两套引擎两套闸门。另有 `useReducedMotion()` hook 可在逻辑层读当前设置（如"减少动效时跳过引导动画直接给终态"）。
+`"user"` = 跟随系统设置：开启"减少动态效果"时，**transform 与 layout 动画自动跳过、直接落终态**（位移动画是眩晕主因），**opacity/颜色动画保留**（褪色不致眩晕）。
+
+注意它的边界：MotionConfig **只管库自己的动画**。
+
+页面里的纯 CSS 动画仍要 @media 自己拦（见 `lesson23.css`），两套引擎两套闸门。
+
+另有 `useReducedMotion()` hook 可在逻辑层读当前设置（如"减少动效时跳过引导动画直接给终态"）。
 
 ## 代码导读
 
@@ -150,4 +245,6 @@ variants 把命名的动画值收编成对象树，父组件广播状态机（`i
 
 ## 下一课预告
 
-动效之外，现代前端还有一大件：把数据画出来。下一课（第 38 课）进入数据可视化——选型图表库、用 React 声明式地画柱状图/折线图，讨论"图表渲染是 DOM 还是 Canvas"这个与"CSS 还是库"同款思路的选型问题。
+动效之外，现代前端还有一大件：把数据画出来。
+
+下一课（第 38 课）进入数据可视化——选型图表库、用 React 声明式地画柱状图/折线图，讨论"图表渲染是 DOM 还是 Canvas"这个与"CSS 还是库"同款思路的选型问题。

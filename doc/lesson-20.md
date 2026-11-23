@@ -24,7 +24,9 @@
 
 ### 两类状态，两套工具
 
-看板上同时住着两种数据，判断标准只有一条：**它的真相（source of truth）在哪**？
+> **一句话记住：** 真相在服务器的数据归 Query，真相在本机的数据归 Zustand——先分类，再选工具。
+
+看板上同时住着两种数据，怎么判断各自该用什么工具？判断标准只有一条：**它的真相（source of truth）在哪**？
 
 | | 资源列表 | 课程进度 |
 |---|---|---|
@@ -33,9 +35,34 @@
 | 要什么能力 | 缓存、重试、失效重取、请求状态机 | 持久化、跨页面共享 |
 | 该用什么 | TanStack Query | Zustand |
 
-把资源列表塞进 Zustand，你就得亲手重写一遍缓存失效、后台刷新、并发去重——等于实现一个烂版 Query；反过来把"勾了第 3 课"发请求存服务器，是为一个本地偏好修了一条高速公路。**先分类，再选工具**，这是真实项目里每天都要做的判断。
+放错工具会怎样？两个方向都是灾难：
+
+- 把资源列表塞进 Zustand：缓存失效、后台刷新、并发去重都得你亲手重写，等于实现一个烂版 Query。
+- 把"勾了第 3 课"发请求存服务器：为一个本地偏好修一条高速公路，纯属浪费。
+
+所以记住顺序：**先分类，再选工具**，这是真实项目里每天都要做的判断。
+
+**图：看板的组件结构与两条数据通路**
+
+```mermaid
+flowchart TD
+    P["Lesson20 页面<br/>QueryClientProvider"] --> B["Board 看板"]
+    P --> H["CompletionBar 页头完成率"]
+    B --> G["进度网格 + 统计<br/>LessonTile 纯展示"]
+    B --> R["资源区"]
+    G -->|"本地状态"| ST["Zustand progressStore<br/>+ persist 存 localStorage"]
+    H -->|"只读订阅"| ST
+    R --> F["AddResourceForm<br/>RHF + Zod"]
+    R --> C["ResourceCard<br/>useOptimistic 点赞"]
+    F -->|"合法数据"| Q["TanStack Query<br/>useQuery / useMutation"]
+    C -->|"invalidate 重取"| Q
+    Q -->|"服务器状态"| DB["mock 服务器 DB"]
+```
+
 
 ### Query 的写后闭环：invalidate，不要"顺便改缓存"
+
+> **一句话记住：** 写成功后只声明"缓存过期了"，重取交给 Query——单一真相，永不失同步。
 
 添加资源的完整数据流（验证点：点提交后列表自动从 18 条变 19 条）：
 
@@ -46,9 +73,36 @@
    → useQuery 拿到新数组 → 列表多了一行
 ```
 
-新手最常见的反模式是在 `onSuccess` 里手动把新条目 `setState` 拼进列表——那等于在 Query 的缓存旁边又养了一份"影子列表"，两份真相迟早打架（后台重取一覆盖，你拼的那条就没了）。正确姿势是**只声明"数据过期"，重取交给 Query**：单一真相，永不失同步。
+新手最常见的反模式是什么？在 `onSuccess` 里手动把新条目 `setState` 拼进列表。那等于在 Query 的缓存旁边又养了一份"影子列表"，两份真相迟早打架（后台重取一覆盖，你拼的那条就没了）。
+
+正确姿势是**只声明"数据过期"，重取交给 Query**：单一真相，永不失同步。
+
+**图：添加资源后的写后失效闭环**
+
+```mermaid
+sequenceDiagram
+    participant F as AddResourceForm
+    participant M as useMutation
+    participant S as mock 服务器
+    participant Q as Query 缓存
+    participant L as 资源列表
+
+    F->>F: zod 校验通过
+    F->>M: mutateAsync(input)
+    M->>S: addResource
+    S-->>M: 入库成功 · 返回新条目
+    M->>Q: onSuccess: invalidateQueries
+    Note over Q: 标记缓存过期（不手拼数据）
+    Q->>S: 自动重新 fetchResources
+    S-->>Q: 返回全量 19 条
+    Q-->>L: useQuery 拿到新数组
+    L->>L: 列表自动多一行
+```
+
 
 ### 乐观更新：先给结果，错了再收回
+
+> **一句话记住：** 点击瞬间界面就 +1，请求失败时 React 自动弹回——你要负责的只是让真实值最终正确。
 
 普通提交是"等服务器点头，界面才敢动"——一次点赞要看着按钮转 600ms。乐观更新反过来：**点击瞬间界面就 +1**（假装成功），请求真返回了就顺手确认，失败了 React 19 自动把数字弹回去（回滚）。
 
@@ -60,6 +114,8 @@
 
 ### 表单校验的分层
 
+> **一句话记住：** 规则归 Zod、接线归 zodResolver、展示归内联红字——三层各管一段，互不越界。
+
 `AddResourceForm` 里校验分了三层，各管一段：
 
 1. **规则层（Zod schema）**：`标题 2–40 字 / z.url() 且仅 http(s) / 课号 1–20 的整数`。规则集中一份，和 UI 解耦——换个表单库、放到 Node 后端，schema 照用（验证点：填 `notaurl` 提交，红色提示"请输入合法的 URL"）；
@@ -70,7 +126,11 @@
 
 ### persist：持久化是 store 的快照
 
-`progressStore` 用 zustand 的 `persist` 中间件包了一层：每次 `set` 自动把 state 写进 localStorage（key 是 `name` 选项），页面加载时自动读回。勾掉几门课、刷新页面、明天再开——进度都在（验证点：勾 1 课 + 星 1 课，刷新后统计和勾选状态原样）。记住方向感：**state 是源头，localStorage 只是它的自动快照**，所以 `reset()` 只需要 `set({ progress: {} })`，不用手动清存储。
+> **一句话记住：** state 是源头，localStorage 只是它的自动快照——reset 只需 set，不用手动清存储。
+
+`progressStore` 用 zustand 的 `persist` 中间件包了一层：每次 `set` 自动把 state 写进 localStorage（key 是 `name` 选项），页面加载时自动读回。
+
+勾掉几门课、刷新页面、明天再开——进度都在（验证点：勾 1 课 + 星 1 课，刷新后统计和勾选状态原样）。记住方向感：**state 是源头，localStorage 只是它的自动快照**，所以 `reset()` 只需要 `set({ progress: {} })`，不用手动清存储。
 
 ## 代码导读
 
@@ -167,7 +227,29 @@
 - **RHF 管表单输入**（`AddResourceForm.jsx`）：添加资源的人口。Zod 拦住非法数据，合法的 `{ title, url, lessonId }` 交给 Query 的 `mutateAsync`——表单库只管"输入变合法"，不碰缓存不碰列表；
 - **React 19 管提交体验**（`ResourceCard.jsx`）：点赞不等服务器。`useOptimistic` 给即时反馈，`useTransition` 包住 async 动作；成功后调 Query 的 invalidate 同步真相，失败靠过渡结束自动回滚。
 
-三条流水线在页面上并行不悖：表单 → mutateAsync → 服务器 → invalidate → 列表更新（服务器状态闭环）；勾选 → store → localStorage → 刷新仍在（本地状态闭环）；点击 → 乐观值 → 请求 → 确认/回滚（提交体验闭环）。**判断新数据该进哪个系统的口诀：真相在服务器进 Query，真相在本地进 Zustand，经过输入框的先过 Zod，用户手快的先给乐观反馈。**
+三条流水线在页面上并行不悖：
+
+- 服务器状态闭环：表单 → mutateAsync → 服务器 → invalidate → 列表更新；
+- 本地状态闭环：勾选 → store → localStorage → 刷新仍在；
+- 提交体验闭环：点击 → 乐观值 → 请求 → 确认/回滚。
+
+**判断新数据该进哪个系统的口诀：真相在服务器进 Query，真相在本地进 Zustand，经过输入框的先过 Zod，用户手快的先给乐观反馈。**
+
+**图：新数据该进哪个系统**
+
+```mermaid
+flowchart TD
+    A["一块新数据来了"] --> B{"真相在哪？"}
+    B -->|"服务器维护"| C["TanStack Query<br/>缓存 + 失效重取"]
+    B -->|"这台浏览器"| D{"跨组件共享<br/>且要持久化？"}
+    D -->|"是"| E["Zustand + persist"]
+    D -->|"否"| F["留在 useState"]
+    A --> G{"经过输入框？"}
+    G -->|"是"| H["Zod schema 拦非法输入"]
+    A --> I{"要即时反馈？"}
+    I -->|"是"| J["useOptimistic<br/>先打欠条"]
+```
+
 
 ## 动手试一试
 
@@ -199,4 +281,10 @@
 
 ## 下一课预告
 
-没有下一课了——第 20 课是本课程的毕业设计。从这里出发的三个方向：**服务端渲染与元框架**（Next.js / React Router v8 的 framework mode： SSR、数据加载上移到路由层）；**TypeScript**（本课程刻意用纯 JS 让你专注概念，真实项目里 Zod schema 能同时变成类型，RHF 的 `errors` 全程有类型提示）；**更深的 React 内功**（useSyncExternalStore、调度原理、编译优化 React Compiler）。写代码愉快，我们真实项目里见。
+没有下一课了——第 20 课是本课程的毕业设计。从这里出发的三个方向：
+
+- **服务端渲染与元框架**（Next.js / React Router v8 的 framework mode： SSR、数据加载上移到路由层）；
+- **TypeScript**（本课程刻意用纯 JS 让你专注概念，真实项目里 Zod schema 能同时变成类型，RHF 的 `errors` 全程有类型提示）；
+- **更深的 React 内功**（useSyncExternalStore、调度原理、编译优化 React Compiler）。
+
+写代码愉快，我们真实项目里见。

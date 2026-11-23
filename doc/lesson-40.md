@@ -1,6 +1,10 @@
 # 第 40 课 · 从 Mock 到真实后端
 
-最后一课。前 39 课里所有叫 mock 的文件（第 11 课的 fetchUsers、第 16 课的网络面板、第 19 课的 mockApi、第 28/30 课的 MockSocket）都住在你页面的同一个进程里——这次我们把它们换成真的：一个 Node + Express + ws 写的后端，跑在 **http://localhost:4310**，跨着源、隔着网络、会拒绝你、也会失联。打开 http://localhost:5173/lesson/40 之前，先 `cd server && node server.js`——本课页面离开这个服务器就只剩"网络错误"四个字，这正是教学的一部分。
+最后一课。前 39 课里所有叫 mock 的文件（第 11 课的 fetchUsers、第 16 课的网络面板、第 19 课的 mockApi、第 28/30 课的 MockSocket）都住在你页面的同一个进程里——这次我们把它们换成真的。
+
+新后端是一个 Node + Express + ws 写的服务器，跑在 **http://localhost:4310**：跨着源、隔着网络、会拒绝你、也会失联。
+
+打开 http://localhost:5173/lesson/40 之前，先 `cd server && node server.js`——本课页面离开这个服务器就只剩"网络错误"四个字，这正是教学的一部分。
 
 ## 学习目标
 
@@ -24,7 +28,13 @@
 
 ### 同源策略与 CORS 手把手
 
-**什么是"源"**：`协议 + 域名 + 端口` 三元组。`http://localhost:5173` 与 `http://localhost:4310` 只有端口不同，就是两个不同的源。同源策略是浏览器的默认行为：**A 源的页面里，JS 默认不许读 B 源的响应**。
+> **一句话记住：** 协议+域名+端口有一个不同就是跨源；CORS 是服务器放行头换来的"浏览器不扣响应"。
+
+第一个问题：什么是"源"（origin）？
+
+**源 = `协议 + 域名 + 端口` 三元组**。`http://localhost:5173` 与 `http://localhost:4310` 只有端口不同，就是两个不同的源。
+
+同源策略（same-origin policy）是浏览器的默认行为：**A 源的页面里，JS 默认不许读 B 源的响应**。
 
 手把手走一遍本课的跨源请求（页面在 5173，服务器在 4310）：
 
@@ -34,11 +44,50 @@
 4. 服务器加了 CORS 中间件（`server.js` 里手写的那段）：正式响应带上放行头，浏览器放行，JS 拿到 JSON；
 5. POST 是"非简单请求"（带 `Content-Type: application/json` 体）：浏览器**先发 OPTIONS 预检**问"你允许这个方法、这个头吗"，服务器答 `Access-Control-Allow-Methods` / `Access-Control-Allow-Headers` + 204，然后才发真正的 POST——所以 CORS 中间件必须接得住 OPTIONS。
 
-**两个易混淆点**：① CORS 报错出现在浏览器控制台，但服务器端日志一切正常——拦截发生在浏览器，不是服务器拒绝；② `Access-Control-Allow-Origin: *` 看似省事，但带凭据（cookie）的请求禁止用 `*`，生产做法是白名单（本课写死 5173 就是白名单）。
+**图：非简单请求的预检时序**
 
-**WebSocket 的特殊待遇**：ws 握手**没有预检**，同源策略拦不住它——浏览器会带上 `Origin` 头，但放不放行完全由服务端决定。所以 `server.js` 在 `connection` 事件里手写了 Origin 白名单检查（不允许就 `close(1008)`）。"WebSocket 不受 CORS 管"是正确但危险的说法：不受浏览器管，不等于不用管。
+```mermaid
+sequenceDiagram
+    participant B as 浏览器
+    participant S as 服务器 4310
+    B->>S: OPTIONS 预检, 问方法与头
+    S-->>B: 放行头 + 204
+    B->>B: 预检通过才发真正的 POST
+    B->>S: POST /api/notes 带 JSON
+    S->>S: validateNote 校验
+    S-->>B: 201 新建成功
+```
+
+**两个易混淆点**：
+
+- ① CORS 报错出现在浏览器控制台，但服务器端日志一切正常——拦截发生在浏览器，不是服务器拒绝；
+- ② `Access-Control-Allow-Origin: *` 看似省事，但带凭据（cookie）的请求禁止用 `*`，生产做法是白名单（本课写死 5173 就是白名单）。
+
+**图：前端到真实后端的请求链路**
+
+```mermaid
+flowchart TD
+    UI["LiveBoard 页面 5173"] -->|"fetch 或 WebSocket"| BR["浏览器"]
+    BR -->|"跨源请求带 Origin 头"| CO{"CORS 检查"}
+    CO -->|"无放行头"| X["浏览器扣下响应, JS 得 TypeError"]
+    CO -->|"命中白名单放行头"| SV["Express 服务器 4310"]
+    SV --> V["validateNote 服务端再校验"]
+    V -->|"合法"| OK["201 返回并经 ws 广播 note:created"]
+    V -->|"非法"| BAD["400 带中文错误信息"]
+    OK --> UI2["另一窗口去抖重拉列表"]
+```
+
+**WebSocket 的特殊待遇**：ws 握手**没有预检**，同源策略拦不住它——浏览器会带上 `Origin` 头，但放不放行完全由服务端决定。
+
+所以 `server.js` 在 `connection` 事件里手写了 Origin 白名单检查（不允许就 `close(1008)`）。
+
+"WebSocket 不受 CORS 管"是正确但危险的说法：**不受浏览器管，不等于不用管**。
 
 ### REST 设计基本约定
+
+> **一句话记住：** URL 是名词、方法是动词、状态码说结果——服务端永远不信任客户端。
+
+前后端约定接口时靠什么对齐？靠一套行业默认的 REST 约定，每一条都在本课服务器里落了地：
 
 | 约定 | 本课的落地 | 为什么 |
 | --- | --- | --- |
@@ -51,9 +100,21 @@
 
 ### ws 协议握手（一句话版）
 
-WebSocket 握手就是一次特殊的 HTTP 请求：客户端发 `Upgrade: websocket`，服务器答 **101 Switching Protocols**，此后这条 TCP 连接脱离"一问一答"模式变成双向长通道——所以 ws 能和 Express 共用同一个端口（`server.js` 手动 `app.listen` 拿到 HTTP server，交给 `new WebSocketServer({ server, path: '/ws' })`）。握手成本与普通 HTTP 相同，之后的每条消息都不再带 HTTP 头，这是它比轮询省的账。
+> **一句话记住：** 握手 = 一次 HTTP Upgrade 请求 + 101 应答，之后同一条 TCP 变双向长连接。
+
+WebSocket 跟 HTTP 是什么关系？答案藏在它的握手过程里——握手就是一次特殊的 HTTP 请求。
+
+流程：客户端发 `Upgrade: websocket`，服务器答 **101 Switching Protocols**，此后这条 TCP 连接脱离"一问一答"模式变成双向长通道。
+
+所以 ws 能和 Express 共用同一个端口（`server.js` 手动 `app.listen` 拿到 HTTP server，交给 `new WebSocketServer({ server, path: '/ws' })`）。
+
+握手成本与普通 HTTP 相同，之后的每条消息都不再带 HTTP 头——**这是它比轮询省的账**。
 
 ### 为什么真实环境才能学到这四种问题
+
+> **一句话记住：** 网络错误、CORS、并发、序列化——Mock 的同进程隔离把这四样全藏起来了。
+
+Mock 不是偷懒，是教学隔离——先把 React 概念一个个讲干净。但下面这四种真实世界的问题，Mock 里根本不存在，只有接上真服务器才能补齐：
 
 | 问题 | Mock 里的假象 | 真实世界的表现 | 本课现场 |
 | --- | --- | --- | --- |
@@ -62,11 +123,13 @@ WebSocket 握手就是一次特殊的 HTTP 请求：客户端发 `Upgrade: webso
 | 并发 | 只有你一个用户 | 多客户端同时读写；广播扎堆；重拉重叠 | 开两个窗口，A 添加 → B 列表自动刷新；去抖合并刷新 |
 | 序列化 | 直接传对象引用 | 只有字节：stringify / parse 都可能失败；大小有限制；字段要重验 | apiClient 每次序列化都有 try/catch；服务器 validateNote 重验一切 |
 
-Mock 不是偷懒，是教学隔离——先把 React 概念一个个讲干净。但隔离的四样代价，只有接上真实世界才能补齐。
+隔离的这四样代价，只有接上真实世界才能补齐。
 
 ### "接口不变、只换实现"清单
 
-第 28 课 MockSocket → 本课 LiveSocket，接口逐项对照：
+> **一句话记住：** LiveSocket 逐项对齐 MockSocket 的接口——组件一行没为"换真 socket"多写。
+
+凭什么把 Mock 换成真 socket，页面组件几乎不用改？因为第 28 课设计 MockSocket 时就对着真实接口建模。第 28 课 MockSocket → 本课 LiveSocket，接口逐项对照：
 
 | 接口 | MockSocket（28 课） | LiveSocket（40 课） |
 | --- | --- | --- |
@@ -79,7 +142,23 @@ Mock 不是偷懒，是教学隔离——先把 React 概念一个个讲干净�
 
 结果：LiveBoard 的连接管理逻辑与第 28/30 课的组件同构，一行没为"换真 socket"多写。
 
+**图：LiveSocket 断线重连状态机**
+
+```mermaid
+stateDiagram-v2
+    [*] --> open: connect 成功
+    open --> reconnecting: 意外断线, 排定退避重试
+    reconnecting --> connecting: 间隔到点发起重连, attempt 递增
+    connecting --> open: 握手成功, attempt 清零
+    connecting --> reconnecting: 仍失败, 间隔封顶 8s 加抖动
+    open --> closed: 用户点主动断开, _manuallyClosed 为 true
+    closed --> open: 用户点重新连接
+    closed --> [*]
+```
+
 ### 全课程总结表
+
+> **一句话记住：** 40 课一条暗线：UI = f(state)——本课终于把输入端接上了真实世界。
 
 | 篇章 | 课号 | 主线 | 学完你能做什么 |
 | --- | --- | --- | --- |
@@ -91,7 +170,14 @@ Mock 不是偷懒，是教学隔离——先把 React 概念一个个讲干净�
 | 新领域 | 31–35 | Next.js/RSC、虚拟列表、i18n、Tailwind、PWA | 把能力边界往外推 |
 | 贯通 | 36–40 | Playwright、framer-motion、SVG 可视化、Web Vitals、真实后端 | 端到端质量 + 接上真实世界 |
 
-一条暗线贯穿始终：`UI = f(state)`（第 1 课）→ 状态放哪、副作用怎么办（2–8 课）→ 数据从哪来、坏了怎么办（11–16 课）→ **数据从真实世界的另一头来**（本课）。React 只是 f，本课把输入端接上了真实。
+一条暗线贯穿始终：
+
+- `UI = f(state)`（第 1 课）；
+- → 状态放哪、副作用怎么办（2–8 课）；
+- → 数据从哪来、坏了怎么办（11–16 课）；
+- → **数据从真实世界的另一头来**（本课）。
+
+React 只是 f，本课把输入端接上了真实。
 
 ## 代码导读
 
@@ -133,4 +219,10 @@ Mock 不是偷懒，是教学隔离——先把 React 概念一个个讲干净�
 
 ## 下一课预告
 
-没有第 41 课了——这门 40 课的课程到此结课。从 `UI = f(state)` 到真实后端，你走完的不是知识点清单，而是一条"能独立把一个 React 应用从零做出来、测起来、部署上线、接上真实世界"的完整路径。下一步不再是听讲，而是构建：选一个你自己的问题，用这 40 课的手艺从零做出真实的东西去解决它。毕业快乐，路上见。🎓
+没有第 41 课了——这门 40 课的课程到此结课。
+
+从 `UI = f(state)` 到真实后端，你走完的不是知识点清单，而是一条"能独立把一个 React 应用从零做出来、测起来、部署上线、接上真实世界"的完整路径。
+
+下一步不再是听讲，而是构建：选一个你自己的问题，用这 40 课的手艺从零做出真实的东西去解决它。
+
+毕业快乐，路上见。🎓
